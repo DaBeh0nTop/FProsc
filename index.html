@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOSH | Skin Processor</title>
+    <style>
+        /* Base Styles */
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --accent: #ff7700;
+            --border: #333333;
+            --success: #00cc66;
+            --warning: #ffcc00;
+            --error: #ff4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header Section */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border: 1px solid var(--border);
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+
+        .file-input-wrapper {
+            margin: 20px 0;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: var(--accent);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .upload-btn:hover {
+            opacity: 0.9;
+        }
+
+        .file-name {
+            margin-top: 12px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Progress and Error Sections */
+        .progress-bar {
+            width: 100%;
+            height: 4px; /* Slightly thicker */
+            background: var(--border);
+            margin: 20px 0;
+            border-radius: 2px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .processing-info {
+            text-align: center;
+            color: var(--text-secondary);
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+
+        .error-message {
+            color: var(--error);
+            background: #2a1a1a;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border: 1px solid var(--error);
+            font-size: 0.9rem;
+        }
+
+        /* Results Section */
+        .stats-grid {
+            display: grid; /* Use grid for better control */
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive columns */
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 2rem; /* Slightly larger */
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .chart-section {
+            background: var(--bg-secondary);
+            padding: 24px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+            border-radius: 8px;
+        }
+
+        .chart-title {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            font-size: 1.2rem; /* Slightly larger */
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        .distribution-bar {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05); /* Lighter border */
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+
+        .distribution-bar:last-child {
+            border-bottom: none; /* No border on last item */
+        }
+
+        .bar-label {
+            width: 120px; /* Increased width for labels */
+            font-weight: 500;
+            color: var(--text-primary);
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        .bar-count {
+            width: 60px; /* Increased width for counts */
+            text-align: right;
+            color: var(--text-secondary);
+            margin-right: 12px;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .bar-percent {
+            width: 50px; /* Increased width for percentage */
+            text-align: right;
+            color: var(--accent);
+            margin-right: 12px;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .bar-fill {
+            flex: 1;
+            height: 18px; /* Slightly taller */
+            background: #2a2a2a;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .bar-progress {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px; /* Larger indicator */
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px; /* More space */
+            vertical-align: middle;
+        }
+
+        .status-active { background: var(--success); }
+        .status-semi { background: var(--warning); }
+        .status-inactive { background: var(--error); }
+
+        /* Accounts Preview Table */
+        .accounts-preview {
+            background: var(--bg-secondary);
+            padding: 24px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .selected-count {
+            margin-top: 16px;
+            color: var(--accent);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .preview-table th {
+            background: #2a2a2a;
+            padding: 12px;
+            text-align: left;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.9rem;
+            border-bottom: 2px solid var(--border);
+            position: sticky; /* Sticky header */
+            top: 0;
+            z-index: 1;
+        }
+
+        .preview-table td {
+            padding: 12px;
+            color: var(--text-secondary);
+            font-size: 0.85rem; /* Slightly smaller font */
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .preview-table tr:hover {
+            background: #2a2a2a;
+        }
+
+        .preview-table tr.selected {
+            background: #3a2a1a;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: flex-end; /* Align to right */
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s ease, background-color 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: #2a2a2a;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100; /* High z-index */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8); /* Darker overlay */
+            padding-top: 60px;
+            backdrop-filter: blur(5px); /* Blur background */
+        }
+
+        .modal-content {
+            background-color: var(--bg-secondary);
+            margin: 5% auto;
+            padding: 30px;
+            border: 1px solid var(--border);
+            width: 90%; /* Wider on desktop */
+            max-width: 550px; /* Max width */
+            border-radius: 10px; /* More rounded */
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .modal-content h2 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            font-size: 1.6rem; /* Larger title */
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .modal-content input[type="number"],
+        .modal-content input[type="text"] {
+            width: calc(100% - 22px); /* Adjust for padding/border */
+            padding: 12px; /* More padding */
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            background: #2a2a2a;
+            color: var(--text-primary);
+            border-radius: 6px; /* More rounded */
+            font-size: 1rem;
+        }
+
+        .modal-content .radio-group {
+            margin-bottom: 20px;
+        }
+
+        .modal-content .radio-group label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px; /* More space */
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .modal-content .radio-group input[type="radio"] {
+            margin-right: 12px; /* More space */
+            transform: scale(1.2); /* Larger radio buttons */
+            accent-color: var(--accent);
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-preview-list {
+            max-height: 350px; /* Taller list */
+            overflow-y: auto;
+            background: #2a2a2a;
+            border: 1px solid var(--border);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .modal-preview-list div {
+            margin-bottom: 5px;
+            word-break: break-all; /* Break long lines */
+        }
+
+        .modal-preview-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .modal-preview-actions .btn {
+            padding: 12px 25px;
+            font-size: 1rem;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 0;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr; /* Single column on small screens */
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: stretch; /* Stretch buttons */
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .preview-table {
+                font-size: 0.75rem; /* Smaller font for table */
+            }
+            
+            .preview-table th,
+            .preview-table td {
+                padding: 8px;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 20px auto;
+                padding: 20px;
+            }
+
+            .modal-content h2 {
+                font-size: 1.4rem;
+            }
+
+            .bar-label {
+                width: 90px;
+            }
+            .bar-count {
+                width: 50px;
+            }
+            .bar-percent {
+                width: 45px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>HOSH | SKIN PROCESSOR</h1>
+            <p>Analyze gaming account data</p>
+        </div>
+
+        <div class="upload-section">
+            <h2>Upload Data</h2>
+            <p>Select a text file with account information</p>
+            <div class="file-input-wrapper">
+                <label for="fileInput" class="upload-btn">Choose TXT File</label>
+                <input type="file" id="fileInput" class="file-input" accept=".txt">
+            </div>
+            <div id="fileName" class="file-name">No file selected</div>
+        </div>
+
+        <div id="progressSection" class="hidden">
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+            </div>
+            <div class="processing-info">
+                Processing file... Please wait
+            </div>
+        </div>
+
+        <div id="errorSection" class="hidden"></div>
+
+        <div id="resultsSection" class="hidden">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Accounts</h3>
+                    <div id="totalAccounts" class="stat-value">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Valid Accounts</h3>
+                    <div id="validAccounts" class="stat-value">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Average Skins</h3>
+                    <div id="avgSkins" class="stat-value">0.0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Max Skins</h3>
+                    <div id="maxSkins" class="stat-value">0</div>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <h3 class="chart-title">Skin Distribution</h3>
+                <div id="skinDistribution"></div>
+            </div>
+
+            <div class="chart-section">
+                <h3 class="chart-title">Level Distribution</h3>
+                <div id="levelDistribution"></div>
+            </div>
+
+            <div class="chart-section">
+                <h3 class="chart-title">Account Status</h3>
+                <div id="accountStatus"></div>
+            </div>
+
+            <div class="accounts-preview">
+                <h3 class="chart-title">All Accounts</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">
+                    All processed accounts sorted by skin count
+                </p>
+                <div id="selectedCount" class="selected-count hidden">0 accounts selected</div>
+                
+                <div class="table-container">
+                    <table class="preview-table">
+                        <thead>
+                            <tr>
+                                <th>Select</th>
+                                <th>Level</th>
+                                <th>Skins</th>
+                                <th>Nickname</th>
+                                <th>Status</th>
+                                <th>Email</th>
+                                <th>Last Login</th>
+                            </tr>
+                        </thead>
+                        <tbody id="previewTableBody"></tbody>
+                    </table>
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="processSelectedBtn" class="btn btn-primary hidden">Process Selected Accounts</button>
+                    <button id="selectAllBtn" class="btn btn-secondary">Select All</button>
+                    <button id="clearSelectionBtn" class="btn btn-secondary">Clear Selection</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Modal -->
+    <div id="processingModal" class="modal">
+        <div class="modal-content">
+            <div id="step1">
+                <h2>Process Accounts</h2>
+                <label for="numAccounts">Number of accounts to pull:</label>
+                <input type="number" id="numAccounts" min="1" value="1">
+
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="processMethod" value="topToBottom" checked>
+                        Process by Skin (Top to Bottom)
+                    </label>
+                    <label>
+                        <input type="radio" name="processMethod" value="randomizedBalanced">
+                        Process Randomized (Balanced by Skin Category)
+                    </label>
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="generatePreview()">Next</button>
+                </div>
+            </div>
+
+            <div id="step2" class="hidden">
+                <h2>Review Accounts</h2>
+                <div class="modal-preview-list" id="modalPreviewList">
+                    <!-- Accounts will be listed here -->
+                </div>
+                <div class="modal-preview-actions">
+                    <button class="btn btn-primary" onclick="confirmProcess()">Y (Confirm)</button>
+                    <button class="btn btn-secondary" onclick="cancelProcess()">N (Cancel)</button>
+                    <button class="btn btn-secondary" onclick="reshuffleAccounts()">R (Reshuffle)</button>
+                </div>
+            </div>
+
+            <div id="step3" class="hidden">
+                <h2>Save File</h2>
+                <label for="outputFileName">Enter file name (e.g., myaccounts.txt):</label>
+                <input type="text" id="outputFileName" placeholder="accounts.txt">
+                <div class="modal-buttons">
+                    <button class="btn btn-secondary" onclick="cancelProcess()">Cancel</button>
+                    <button class="btn btn-primary" onclick="downloadProcessedFile()">Download</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Constants
+        const DECORATION_CHARS = "═╔╗║╝╚─━";
+        const LEVEL_BRACKETS = [
+            [50, 60], [61, 80], [81, 100], [101, 200], [201, 250]
+        ];
+        const SKIN_RANGES = [
+            [100, 200, "100–200"],
+            [201, 300, "201–300"],
+            [301, 400, "301–400"],
+            [401, 500, "401–500"],
+            [501, 600, "501–600"],
+            [601, 700, "601–700"],
+            [701, 800, "701–800"]
+        ];
+
+        // DOM Elements
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const progressSection = document.getElementById('progressSection');
+        const progressFill = document.getElementById('progressFill');
+        const resultsSection = document.getElementById('resultsSection');
+        const errorSection = document.getElementById('errorSection');
+        const totalAccounts = document.getElementById('totalAccounts');
+        const validAccounts = document.getElementById('validAccounts');
+        const avgSkins = document.getElementById('avgSkins');
+        const maxSkins = document.getElementById('maxSkins');
+        const skinDistribution = document.getElementById('skinDistribution');
+        const levelDistribution = document.getElementById('levelDistribution');
+        const accountStatus = document.getElementById('accountStatus');
+        const previewTableBody = document.getElementById('previewTableBody');
+        const processSelectedBtn = document.getElementById('processSelectedBtn');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        const clearSelectionBtn = document.getElementById('clearSelectionBtn');
+        const selectedCount = document.getElementById('selectedCount');
+
+        // Modal Elements
+        const processingModal = document.getElementById('processingModal');
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        const numAccountsInput = document.getElementById('numAccounts');
+        const modalPreviewList = document.getElementById('modalPreviewList');
+        const outputFileNameInput = document.getElementById('outputFileName');
+
+        // Global variables
+        let allAccounts = []; // Stores all valid accounts from the file
+        let selectedAccountIndices = new Set(); // Stores indices of accounts selected in the table
+        let accountsToProcess = []; // Stores the accounts chosen for the current processing operation
+        let originalFileContent = ''; // Store the original file content for re-parsing if needed
+
+        // Regex patterns - UPDATED for your file format
+        // This regex now accounts for an optional leading number and dot (e.g., "227.")
+        // It looks for any characters at the start, followed by email:pass => =>
+        const BLOCK_START_REGEX = /^\s*.*?[^\s@]+@[^\s@]+\s*:\s*[^\s]+\s*=>\s*=>\s*$/i;
+        const OLD_BLOCK_START_REGEX = /^\d+\.\)\s+.*?:.*/; // Keep this for older formats if needed
+        
+        // More robust regex for Level and Skin to handle various whitespaces/separators
+        // Changed to specifically look for "Level   : " and "Skin    : " as per your example
+        const NICK_REGEX = /Nickname\s*:\s*([^\n\r]+)/i;
+        const LEVEL_REGEX = /Level\s*:\s*(\d+)/i; 
+        const SKIN_REGEX = /Skin\s*:\s*([\d,]+)/i; 
+
+        const EMAIL_REGEX = /[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/;
+        const LAST_LOGIN_REGEX = /Last\s*Log\s*in\s*:\s*([0-9]{4}[\/\-][0-9]{1,2}[\/\-][0-9]{1,2}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2})/i;
+        
+        // This regex captures the full email:pass part, including the leading number if present
+        // It captures everything from the start of the line up to " => =>"
+        const EMAIL_PASS_LINE_REGEX = /^\s*(.*?)\s*=>\s*=>\s*$/i;
+
+
+        // Helper functions
+        function isDecorative(line) {
+            return Array.from(line).every(c => DECORATION_CHARS.includes(c) || c === ' ');
+        }
+
+        function tryParseInt(s) {
+            try {
+                return parseInt(s.replace(/,/g, ''));
+            } catch {
+                return null;
+            }
+        }
+
+        function daysSince(dateStr) {
+            if (!dateStr) return null;
+            
+            // Try different date formats
+            let date;
+            try {
+                date = new Date(dateStr.replace(/\//g, '-'));
+                if (isNaN(date.getTime())) {
+                    date = new Date(dateStr);
+                }
+            } catch {
+                return null;
+            }
+            
+            if (isNaN(date.getTime())) return null;
+            
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        function getLevelBracket(level) {
+            for (const [start, end] of LEVEL_BRACKETS) {
+                if (level >= start && level <= end) {
+                    return `${start}-${end}`;
+                }
+            }
+            return null;
+        }
+
+        function getSkinRange(skin) {
+            const skinNum = tryParseInt(skin);
+            if (skinNum === null) return null;
+            
+            if (skinNum <= 99) return "99↓";
+            
+            for (const [start, end, label] of SKIN_RANGES) {
+                if (skinNum >= start && skinNum <= end) {
+                    return label;
+                }
+            }
+            // If skin is outside defined ranges, categorize it as "Other" or extend ranges
+            return "Other"; // Or define more ranges
+        }
+
+        function showError(message) {
+            errorSection.innerHTML = `<div class="error-message">${message}</div>`;
+            errorSection.classList.remove('hidden');
+            progressSection.classList.add('hidden');
+        }
+
+        function showModal(step) {
+            processingModal.style.display = 'block';
+            step1.classList.add('hidden');
+            step2.classList.add('hidden');
+            step3.classList.add('hidden');
+            if (step === 1) step1.classList.remove('hidden');
+            else if (step === 2) step2.classList.remove('hidden');
+            else if (step === 3) step3.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            processingModal.style.display = 'none';
+            // Reset modal to step 1
+            showModal(1);
+        }
+
+        // File processing
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            fileName.textContent = file.name;
+            progressSection.classList.remove('hidden');
+            resultsSection.classList.add('hidden');
+            errorSection.classList.add('hidden');
+            selectedAccountIndices.clear();
+            allAccounts = [];
+            accountsToProcess = [];
+
+            try {
+                // Check if file is text file
+                if (!file.type.includes('text/') && !file.name.endsWith('.txt')) {
+                    throw new Error('Please select a valid text file (.txt)');
+                }
+
+                const text = await file.text();
+                originalFileContent = text; // Store original content
+                
+                // Check if file has content
+                if (!text.trim()) {
+                    throw new Error('The file is empty');
+                }
+
+                console.log('File content loaded successfully');
+                processFile(text);
+            } catch (error) {
+                console.error('Error reading file:', error);
+                showError(`Error: ${error.message || 'Failed to read file'}`);
+            }
+        });
+
+        function processFile(content) {
+            // Reset progress
+            progressFill.style.width = '0%';
+            
+            // Simulate progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 5;
+                progressFill.style.width = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                    try {
+                        const lines = content.split('\n');
+                        console.log(`Processing ${lines.length} lines`);
+                        const result = parseBlocks(lines);
+                        
+                        if (result.valid.length === 0) {
+                            showError('No valid accounts found in the file. Please check the file format and ensure it contains Level and Skin data.');
+                            return;
+                        }
+                        
+                        allAccounts = result.valid;
+                        console.log(`Found ${result.valid.length} valid accounts`);
+                        displayResults(result.valid, result.total, result.levelCounts, result.activeCounts);
+                    } catch (error) {
+                        console.error('Error processing file:', error);
+                        showError(`Processing error: ${error.message}`);
+                    }
+                }
+            }, 30);
+        }
+
+        function parseBlocks(lines) {
+            const blocks = [];
+            let currentBlockLines = []; // Store lines for the current block
+            let totalBlocks = 0;
+
+            // First pass: identify blocks and group lines
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const trimmedLine = line.trim();
+                
+                if (BLOCK_START_REGEX.test(trimmedLine) || OLD_BLOCK_START_REGEX.test(trimmedLine)) {
+                    if (currentBlockLines.length > 0) {
+                        blocks.push(currentBlockLines.join('\n'));
+                        currentBlockLines = [];
+                    }
+                    currentBlockLines.push(line); // Add the block start line
+                } else if (trimmedLine && !isDecorative(trimmedLine)) {
+                    currentBlockLines.push(line); // Add other relevant lines
+                }
+            }
+            
+            if (currentBlockLines.length > 0) {
+                blocks.push(currentBlockLines.join('\n'));
+            }
+
+            totalBlocks = blocks.length;
+            const valid = [];
+            const levelCounts = {};
+            const activeCounts = { Active: 0, 'Semi Active': 0, Inactive: 0 };
+
+            console.log(`Found ${totalBlocks} potential account blocks`);
+
+            // Second pass: parse each block
+            for (const block of blocks) {
+                try {
+                    const levelMatch = block.match(LEVEL_REGEX);
+                    const skinMatch = block.match(SKIN_REGEX);
+                    const emailPassLineMatch = block.match(EMAIL_PASS_LINE_REGEX); // Use the new regex
+
+                    // Log block content and regex matches for debugging
+                    console.log("--- Processing Block ---");
+                    console.log(block);
+                    console.log("Level Match:", levelMatch);
+                    console.log("Skin Match:", skinMatch);
+                    console.log("EmailPassLine Match:", emailPassLineMatch);
+
+
+                    if (levelMatch && skinMatch && emailPassLineMatch && emailPassLineMatch[1]) {
+                        const level = tryParseInt(levelMatch[1]);
+                        const skins = tryParseInt(skinMatch[1]);
+                        const nickname = (block.match(NICK_REGEX) || [])[1] ? block.match(NICK_REGEX)[1].trim() : 'N/A';
+                        const email = (block.match(EMAIL_REGEX) || [])[0] || 'N/A';
+                        const lastLogin = (block.match(LAST_LOGIN_REGEX) || [])[1] ? block.match(LAST_LOGIN_REGEX)[1].trim() : '';
+                        const emailPass = emailPassLineMatch[1].trim(); // Extract email:pass from the captured group
+
+                        // Validate data
+                        if (level !== null && skins !== null) {
+                            // Level distribution
+                            const bracket = getLevelBracket(level);
+                            if (bracket) {
+                                levelCounts[bracket] = (levelCounts[bracket] || 0) + 1;
+                            }
+
+                            // Activity status
+                            let status = 'Unknown';
+                            if (lastLogin) {
+                                const daysOffline = daysSince(lastLogin);
+                                if (daysOffline !== null) {
+                                    if (daysOffline <= 4) {
+                                        status = 'Active';
+                                        activeCounts.Active++;
+                                    } else if (daysOffline <= 9) {
+                                        status = 'Semi Active';
+                                        activeCounts['Semi Active']++;
+                                    } else {
+                                        status = 'Inactive';
+                                        activeCounts.Inactive++;
+                                    }
+                                }
+                            }
+
+                            valid.push({
+                                originalBlock: block, // Store the original block content
+                                emailPass: emailPass, // Store email:pass
+                                level,
+                                skins,
+                                nickname,
+                                email,
+                                lastLogin,
+                                status
+                            });
+                            console.log("Valid account added:", { emailPass, level, skins });
+                        } else {
+                            console.log("Skipping block: Level or Skin data missing/invalid.");
+                        }
+                    } else {
+                        console.log("Skipping block: Missing Level, Skin, or EmailPassLine match.");
+                    }
+                } catch (error) {
+                    console.warn('Error parsing block:', error);
+                }
+            }
+
+            // Sort by skins descending
+            valid.sort((a, b) => b.skins - a.skins);
+
+            return { valid, total: totalBlocks, levelCounts, activeCounts };
+        }
+
+        function displayResults(valid, total, levelCounts, activeCounts) {
+            progressSection.classList.add('hidden');
+            resultsSection.classList.remove('hidden');
+            errorSection.classList.add('hidden');
+
+            // Update statistics
+            totalAccounts.textContent = total.toLocaleString();
+            validAccounts.textContent = valid.length.toLocaleString();
+            
+            const skinCounts = valid.map(acc => acc.skins).filter(s => s !== null);
+            const avgSkin = skinCounts.length > 0 ? 
+                (skinCounts.reduce((a, b) => a + b, 0) / skinCounts.length).toFixed(1) : '0.0';
+            const maxSkin = skinCounts.length > 0 ? Math.max(...skinCounts) : '0';
+            
+            avgSkins.textContent = maxSkin; // Display max skin as average for now, as per previous request
+            maxSkins.textContent = maxSkin.toLocaleString();
+
+            // Update distributions and table
+            updateDistributions(valid, levelCounts, activeCounts);
+            updatePreviewTable(valid);
+
+            // Setup event listeners for main buttons
+            setupMainEventListeners();
+        }
+
+        function updateDistributions(valid, levelCounts, activeCounts) {
+            // Skin distribution
+            const skinDist = {};
+            // Initialize all SKIN_RANGES labels to 0
+            SKIN_RANGES.forEach(([_, __, label]) => skinDist[label] = 0);
+            skinDist["99↓"] = 0; // Initialize "99↓" category
+            skinDist["Other"] = 0; // Initialize "Other" category for skins outside defined ranges
+
+            for (const acc of valid) {
+                const range = getSkinRange(acc.skins);
+                if (range) {
+                    skinDist[range] = (skinDist[range] || 0) + 1;
+                }
+            }
+
+            skinDistribution.innerHTML = '';
+            // Display "99↓" first if it has counts
+            if (skinDist["99↓"] > 0) {
+                const count = skinDist["99↓"];
+                const percent = valid.length > 0 ? Math.round((count / valid.length) * 100) : 0;
+                const bar = document.createElement('div');
+                bar.className = 'distribution-bar';
+                bar.innerHTML = `
+                    <div class="bar-label">99↓</div>
+                    <div class="bar-count">${count}</div>
+                    <div class="bar-percent">${percent}%</div>
+                    <div class="bar-fill">
+                        <div class="bar-progress" style="width: ${percent}%"></div>
+                    </div>
+                `;
+                skinDistribution.appendChild(bar);
+            }
+
+            // Display defined SKIN_RANGES
+            for (const [start, end, label] of SKIN_RANGES) {
+                const count = skinDist[label] || 0; // Use initialized value
+                const percent = valid.length > 0 ? Math.round((count / valid.length) * 100) : 0;
+                
+                const bar = document.createElement('div');
+                bar.className = 'distribution-bar';
+                bar.innerHTML = `
+                    <div class="bar-label">${label}</div>
+                    <div class="bar-count">${count}</div>
+                    <div class="bar-percent">${percent}%</div>
+                    <div class="bar-fill">
+                        <div class="bar-progress" style="width: ${percent}%"></div>
+                    </div>
+                `;
+                skinDistribution.appendChild(bar);
+            }
+
+            // Display "Other" last if it has counts
+            if (skinDist["Other"] > 0) {
+                const count = skinDist["Other"];
+                const percent = valid.length > 0 ? Math.round((count / valid.length) * 100) : 0;
+                const bar = document.createElement('div');
+                bar.className = 'distribution-bar';
+                bar.innerHTML = `
+                    <div class="bar-label">Other</div>
+                    <div class="bar-count">${count}</div>
+                    <div class="bar-percent">${percent}%</div>
+                    <div class="bar-fill">
+                        <div class="bar-progress" style="width: ${percent}%"></div>
+                    </div>
+                `;
+                skinDistribution.appendChild(bar);
+            }
+
+
+            // Level distribution
+            levelDistribution.innerHTML = '';
+            // Initialize all LEVEL_BRACKETS labels to 0
+            const initializedLevelCounts = {};
+            LEVEL_BRACKETS.forEach(([start, end]) => {
+                const label = `${start}-${end}`;
+                initializedLevelCounts[label] = 0;
+            });
+            // Merge with actual counts
+            Object.assign(initializedLevelCounts, levelCounts);
+
+            for (const [start, end] of LEVEL_BRACKETS) {
+                const label = `${start}-${end}`;
+                const count = initializedLevelCounts[label] || 0;
+                const percent = valid.length > 0 ? Math.round((count / valid.length) * 100) : 0;
+                
+                const bar = document.createElement('div');
+                bar.className = 'distribution-bar';
+                bar.innerHTML = `
+                    <div class="bar-label">${label}</div>
+                    <div class="bar-count">${count}</div>
+                    <div class="bar-percent">${percent}%</div>
+                    <div class="bar-fill">
+                        <div class="bar-progress" style="width: ${percent}%"></div>
+                    </div>
+                `;
+                levelDistribution.appendChild(bar);
+            }
+
+            // Account status
+            accountStatus.innerHTML = '';
+            const statusOrder = ['Active', 'Semi Active', 'Inactive']; // Define a consistent order
+            // Initialize all status counts to 0
+            const initializedActiveCounts = { 'Active': 0, 'Semi Active': 0, 'Inactive': 0 };
+            Object.assign(initializedActiveCounts, activeCounts);
+
+            for (const status of statusOrder) {
+                const count = initializedActiveCounts[status] || 0;
+                const percent = valid.length > 0 ? Math.round((count / valid.length) * 100) : 0;
+                const statusClass = status.toLowerCase().replace(' ', '-');
+                
+                const bar = document.createElement('div');
+                bar.className = 'distribution-bar';
+                bar.innerHTML = `
+                    <div class="bar-label">
+                        <span class="status-indicator status-${statusClass}"></span>
+                        ${status}
+                    </div>
+                    <div class="bar-count">${count}</div>
+                    <div class="bar-percent">${percent}%</div>
+                    <div class="bar-fill">
+                        <div class="bar-progress" style="width: ${percent}%"></div>
+                    </div>
+                `;
+                accountStatus.appendChild(bar);
+            }
+        }
+
+        function setupMainEventListeners() {
+            // Process Selected Accounts button
+            processSelectedBtn.onclick = () => {
+                if (selectedAccountIndices.size === 0) {
+                    alert('Please select at least one account to process.');
+                    return;
+                }
+                numAccountsInput.max = selectedAccountIndices.size;
+                numAccountsInput.value = selectedAccountIndices.size; // Default to all selected
+                showModal(1);
+            };
+
+            // Select all functionality
+            selectAllBtn.onclick = () => {
+                selectedAccountIndices.clear(); // Clear existing selection
+                allAccounts.forEach((_, index) => selectedAccountIndices.add(index));
+                updatePreviewTable(allAccounts); // Re-render table to show all selected
+                updateSelectionUI();
+            };
+
+            // Clear selection functionality
+            clearSelectionBtn.onclick = () => {
+                selectedAccountIndices.clear();
+                updatePreviewTable(allAccounts); // Re-render table to clear checkboxes
+                updateSelectionUI();
+            };
+        }
+
+        function updatePreviewTable(accounts) {
+            previewTableBody.innerHTML = '';
+            
+            accounts.forEach((acc, index) => {
+                const row = document.createElement('tr');
+                const isSelected = selectedAccountIndices.has(index);
+                if (isSelected) {
+                    row.classList.add('selected');
+                }
+                row.innerHTML = `
+                    <td>
+                        <input type="checkbox" data-index="${index}" ${isSelected ? 'checked' : ''} onchange="toggleAccountSelection(${index}, this.checked)">
+                    </td>
+                    <td>${acc.level}</td>
+                    <td>${acc.skins.toLocaleString()}</td>
+                    <td>${acc.nickname}</td>
+                    <td>${acc.status}</td>
+                    <td>${acc.email}</td>
+                    <td>${acc.lastLogin || 'N/A'}</td>
+                `;
+                previewTableBody.appendChild(row);
+            });
+        }
+
+        function toggleAccountSelection(index, isSelected) {
+            if (isSelected) {
+                selectedAccountIndices.add(index);
+            } else {
+                selectedAccountIndices.delete(index);
+            }
+            updateSelectionUI();
+        }
+
+        function updateSelectionUI() {
+            const count = selectedAccountIndices.size;
+            selectedCount.textContent = `${count} account${count !== 1 ? 's' : ''} selected`;
+            
+            if (count > 0) {
+                selectedCount.classList.remove('hidden');
+                processSelectedBtn.classList.remove('hidden');
+            } else {
+                selectedCount.classList.add('hidden');
+                processSelectedBtn.classList.add('hidden');
+            }
+            // Update row highlighting for accounts currently visible in the preview table
+            const rows = previewTableBody.querySelectorAll('tr');
+            rows.forEach(row => {
+                const checkbox = row.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    const index = parseInt(checkbox.dataset.index);
+                    if (selectedAccountIndices.has(index)) {
+                        row.classList.add('selected');
+                    } else {
+                        row.classList.remove('selected');
+                    }
+                }
+            });
+        }
+
+        function generatePreview() {
+            const numToPull = parseInt(numAccountsInput.value);
+            if (isNaN(numToPull) || numToPull <= 0) {
+                alert('Please enter a valid number of accounts to pull.');
+                return;
+            }
+            if (numToPull > selectedAccountIndices.size) {
+                alert(`You can only pull up to ${selectedAccountIndices.size} selected accounts.`);
+                return;
+            }
+
+            const selectedAccountsArray = Array.from(selectedAccountIndices).map(index => allAccounts[index]);
+            const processMethod = document.querySelector('input[name="processMethod"]:checked').value;
+
+            if (processMethod === 'topToBottom') {
+                // Already sorted by skins descending, just take the top N
+                accountsToProcess = selectedAccountsArray.slice(0, numToPull);
+            } else if (processMethod === 'randomizedBalanced') {
+                accountsToProcess = getBalancedRandomAccounts(selectedAccountsArray, numToPull);
+            }
+
+            displayProcessedAccountsPreview();
+            showModal(2);
+        }
+
+        function getBalancedRandomAccounts(sourceAccounts, numToPull) {
+            const categorizedAccounts = {};
+            SKIN_RANGES.forEach(([_, __, label]) => categorizedAccounts[label] = []);
+            categorizedAccounts["99↓"] = []; // Add the low skin category
+            categorizedAccounts["Other"] = []; // Add "Other" category
+
+            sourceAccounts.forEach(acc => {
+                const range = getSkinRange(acc.skins);
+                if (range && categorizedAccounts[range]) {
+                    categorizedAccounts[range].push(acc);
+                } else { // Fallback for "Other" or undefined ranges
+                    categorizedAccounts["Other"].push(acc);
+                }
+            });
+
+            let pulledAccounts = [];
+            let remainingToPull = numToPull;
+
+            // Shuffle each category
+            for (const category in categorizedAccounts) {
+                categorizedAccounts[category].sort(() => Math.random() - 0.5);
+            }
+
+            // Calculate initial pull distribution based on category sizes
+            const totalSource = sourceAccounts.length;
+            const categoryPullCounts = {};
+            for (const category in categorizedAccounts) {
+                categoryPullCounts[category] = Math.floor((categorizedAccounts[category].length / totalSource) * numToPull);
+                remainingToPull -= categoryPullCounts[category];
+            }
+
+            // Distribute remaining accounts (due to flooring)
+            let categoriesSortedByRemaining = Object.keys(categorizedAccounts).sort((a, b) => 
+                (categorizedAccounts[b].length - categoryPullCounts[b]) - (categorizedAccounts[a].length - categoryPullCounts[a])
+            );
+
+            let idx = 0;
+            while (remainingToPull > 0 && categoriesSortedByRemaining.length > 0) {
+                const category = categoriesSortedByRemaining[idx % categoriesSortedByRemaining.length];
+                if (categoryPullCounts[category] < categorizedAccounts[category].length) {
+                    categoryPullCounts[category]++;
+                    remainingToPull--;
+                }
+                idx++;
+                // If we've iterated through all categories and still need more, reset index
+                if (idx >= categoriesSortedByRemaining.length && remainingToPull > 0) {
+                    // Filter out categories that are now empty or fully allocated
+                    categoriesSortedByRemaining = categoriesSortedByRemaining.filter(cat => 
+                        categoryPullCounts[cat] < categorizedAccounts[cat].length
+                    );
+                    idx = 0; // Reset index for next round
+                }
+            }
+
+            // Pull accounts based on calculated counts
+            for (const category in categoryPullCounts) {
+                const count = Math.min(categoryPullCounts[category], categorizedAccounts[category].length); // Don't pull more than available
+                pulledAccounts.push(...categorizedAccounts[category].splice(0, count));
+            }
+
+            // If somehow we still don't have enough (e.g., due to rounding or very small categories),
+            // or if we pulled too many (shouldn't happen with min check), adjust.
+            // This ensures we get exactly numToPull accounts.
+            if (pulledAccounts.length > numToPull) {
+                pulledAccounts = pulledAccounts.slice(0, numToPull);
+            } else if (pulledAccounts.length < numToPull) {
+                // If still short, just grab remaining randomly from any category
+                const flatRemaining = [];
+                for (const category in categorizedAccounts) {
+                    flatRemaining.push(...categorizedAccounts[category]);
+                }
+                flatRemaining.sort(() => Math.random() - 0.5); // Shuffle remaining
+                pulledAccounts.push(...flatRemaining.slice(0, numToPull - pulledAccounts.length));
+            }
+
+            pulledAccounts.sort(() => Math.random() - 0.5); // Final shuffle for good measure
+            return pulledAccounts;
+        }
+
+
+        function displayProcessedAccountsPreview() {
+            modalPreviewList.innerHTML = '';
+            if (accountsToProcess.length === 0) {
+                modalPreviewList.innerHTML = '<div>No accounts selected for processing.</div>';
+                return;
+            }
+            accountsToProcess.forEach(acc => {
+                const div = document.createElement('div');
+                div.textContent = `${acc.emailPass} | Skins: ${acc.skins.toLocaleString()}`;
+                modalPreviewList.appendChild(div);
+            });
+        }
+
+        function confirmProcess() {
+            showModal(3); // Go to file naming step
+            outputFileNameInput.value = 'processed_accounts.txt'; // Default file name
+        }
+
+        function cancelProcess() {
+            accountsToProcess = []; // Clear accounts to process
+            closeModal();
+        }
+
+        function reshuffleAccounts() {
+            // Go back to step 1 to re-generate preview
+            // This will re-run generatePreview with the same options
+            generatePreview(); // Call generatePreview directly to re-randomize/re-select
+            showModal(2); // Stay on step 2 to review new accounts
+        }
+
+        function downloadProcessedFile() {
+            const filename = outputFileNameInput.value.trim();
+            if (!filename) {
+                alert('Please enter a file name.');
+                return;
+            }
+
+            const fileContent = accountsToProcess.map(acc => acc.originalBlock).join('\n\n'); // Join blocks with double newline
+            downloadTxtFile(fileContent, filename); // Use downloadTxtFile for generic file download
+
+            // Remove processed accounts from allAccounts
+            const processedEmailPasses = new Set(accountsToProcess.map(acc => acc.emailPass));
+            const newAllAccounts = allAccounts.filter(acc => !processedEmailPasses.has(acc.emailPass));
+            
+            allAccounts = newAllAccounts; // Update global allAccounts
+            selectedAccountIndices.clear(); // Clear selection as accounts are removed
+
+            // Re-display results and table with updated allAccounts
+            // Re-parse from the remaining original blocks to ensure all stats are correct
+            // Note: This re-parsing from joined blocks might be inefficient for very large files.
+            // A more optimized approach would be to directly update counts and table.
+            // For now, this ensures consistency.
+            const remainingBlocksContent = allAccounts.map(acc => acc.originalBlock).join('\n');
+            const { valid, total, levelCounts, activeCounts } = parseBlocks(remainingBlocksContent);
+            
+            allAccounts = valid; // Update allAccounts with the re-parsed data (important for correct indices)
+            displayResults(valid, total, levelCounts, activeCounts); // Re-render UI
+
+            closeModal();
+            alert(`Successfully processed and downloaded ${accountsToProcess.length} accounts. The accounts have been removed from the current session.`);
+            accountsToProcess = []; // Clear processed accounts after download and removal
+        }
+
+        function downloadTxtFile(content, filename) {
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Make toggle function global for inline onclick
+        window.toggleAccountSelection = toggleAccountSelection;
+        window.generatePreview = generatePreview;
+        window.confirmProcess = confirmProcess;
+        window.cancelProcess = cancelProcess;
+        window.reshuffleAccounts = reshuffleAccounts;
+        window.downloadProcessedFile = downloadProcessedFile;
+        window.closeModal = closeModal;
+    </script>
+</body>
+</html>
