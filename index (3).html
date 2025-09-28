@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Proxy List Creator — Web</title>
+  <style>
+    :root {
+      --bg: #0b0f17; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb; --brand:#22d3ee; --ok:#10b981; --bad:#ef4444; --warn:#f59e0b;
+    }
+    html,body{height:100%;}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,Arial,sans-serif;background:radial-gradient(90vw 80vh at 20% -20%, #0a1530, transparent 60%), radial-gradient(80vw 80vh at 120% 120%, #1a1030, transparent 60%), var(--bg);color:var(--text);}
+    .wrap{max-width:1200px;margin:32px auto;padding:0 16px;}
+    .title{font-size:clamp(22px,3vw,32px);font-weight:800;letter-spacing:.3px;display:flex;align-items:center;gap:12px}
+    .badge{font-size:12px;padding:4px 8px;border-radius:999px;background:linear-gradient(90deg, #22d3ee55, #06b6d455);border:1px solid #22d3ee33;color:#7dd3fc}
+    .grid{display:grid;gap:16px;grid-template-columns:1fr;}
+    @media(min-width:1000px){.grid{grid-template-columns:360px 1fr}}
+    .card{background:linear-gradient(180deg,#111827dd,#0b1220ee);border:1px solid #1f2937;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35);}
+    .card h3{margin:0;padding:16px 16px 8px 16px;font-size:14px;letter-spacing:.4px;font-weight:700;color:#cbd5e1}
+    .card .body{padding:0 16px 16px 16px}
+    textarea,input,select,button{font:inherit;color:inherit}
+    textarea{width:100%;min-height:140px;background:#0b1220;border:1px solid #1f2937;border-radius:12px;color:#e5e7eb;padding:12px 12px;resize:vertical}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .row>div{flex:1 1 120px}
+    .chip{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;background:#0b1220;border:1px solid #1f2937;color:#cbd5e1}
+    .muted{color:var(--muted)}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid #1f2937;background:#0b1220;color:#e5e7eb;cursor:pointer;transition:transform .08s, background .2s}
+    .btn:hover{transform:translateY(-1px)}
+    .btn.primary{background:linear-gradient(180deg,#0c2931,#062028);border-color:#134e4a}
+    .btn.ok{border-color:#064e3b}
+    .btn.warn{border-color:#7c2d12}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .stats{display:flex;gap:12px;flex-wrap:wrap}
+    .stat{flex:1 1 120px;background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:10px}
+    .stat b{font-size:18px}
+    .progress{height:10px;background:#0b1220;border:1px solid #1f2937;border-radius:999px;overflow:hidden}
+    .bar{height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#10b981)}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid #1f2937;font-size:13px}
+    th{position:sticky;top:0;background:#0b1220;z-index:1}
+    .pill{padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid #1f2937}
+    .ok{color:#86efac}
+    .bad{color:#fca5a5}
+    .warn{color:#fde68a}
+    .flex{display:flex;gap:8px;align-items:center}
+    .right{margin-left:auto}
+    .hint{font-size:12px;color:#9ca3af}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="title">Proxy List Creator — Web <span class="badge">HTML + CSS + JS</span></div>
+
+    <div class="grid">
+      <section class="card">
+        <h3>Inputs</h3>
+        <div class="body">
+          <label class="hint">Paste proxies (host:port, one per line)</label>
+          <textarea id="proxies" placeholder="1.2.3.4:8080\n5.6.7.8:3128"></textarea>
+          <div class="row" style="margin-top:6px">
+            <div>
+              <label class="hint">Type</label>
+              <select id="ptype">
+                <option value="http">HTTP</option>
+                <option value="https">HTTPS</option>
+                <option value="socks4">SOCKS4</option>
+                <option value="socks5">SOCKS5</option>
+              </select>
+            </div>
+            <div class="right flex">
+              <button id="startBtn" class="btn primary">Start Validate</button>
+              <button id="stopBtn" class="btn warn" disabled>Stop</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>Results</h3>
+        <div class="body">
+          <div class="stats">
+            <div class="stat"><div class="muted">Total</div><b id="stTotal">0</b></div>
+            <div class="stat"><div class="muted">Checked</div><b id="stChecked">0</b></div>
+            <div class="stat"><div class="muted">Alive</div><b id="stAlive" class="ok">0</b></div>
+            <div class="stat"><div class="muted">Dead</div><b id="stDead" class="bad">0</b></div>
+          </div>
+          <div class="progress" style="margin:10px 0 6px"><div class="bar" id="bar"></div></div>
+          <div style="max-height:420px;overflow:auto;border:1px solid #1f2937;border-radius:12px">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:36px">#</th>
+                  <th>Proxy</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const el = id => document.getElementById(id);
+    const st = { total:0, checked:0, alive:0, dead:0, running:false, aborter:null };
+    const model = [];
+
+    function setStats(){
+      el('stTotal').textContent = st.total;
+      el('stChecked').textContent = st.checked;
+      el('stAlive').textContent = st.alive;
+      el('stDead').textContent = st.dead;
+      const pct = st.total? Math.round((st.checked/st.total)*100):0;
+      el('bar').style.width = pct+"%";
+    }
+
+    function renderRows(){
+      const tbody = el('rows'); tbody.innerHTML='';
+      let i=0;
+      for(const row of model){
+        const tr=document.createElement('tr');
+        tr.innerHTML = `
+          <td>${++i}</td>
+          <td><code>${row.proxy}</code></td>
+          <td><span class="pill">${row.type.toUpperCase()}</span></td>
+          <td>${ row.status==='alive' ? '<span class="ok">ALIVE</span>' : row.status==='dead' ? '<span class="bad">DEAD</span>' : '<span class="warn">PENDING</span>'}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function prepareList(){
+      const ptype = el('ptype').value;
+      const list = [...new Set(el('proxies').value.split(/\n+/).map(v=>v.trim()).filter(Boolean))];
+      model.length=0;
+      for(const p of list){ model.push({proxy:p, type:ptype, status:'pending'}); }
+      st.total=model.length; st.checked=0; st.alive=0; st.dead=0; setStats(); renderRows();
+    }
+
+    async function runValidate(){
+      prepareList();
+      if(!st.total){ alert('No proxies to validate.'); return; }
+      st.running=true; el('stopBtn').disabled=false; el('startBtn').disabled=true;
+      for(const row of model){
+        // simulate random result
+        await new Promise(r=>setTimeout(r,200+Math.random()*500));
+        const ok=Math.random()<0.4; row.status=ok?'alive':'dead';
+        if(ok) st.alive++; else st.dead++;
+        st.checked++; setStats(); renderRows();
+        if(!st.running) break;
+      }
+      st.running=false; el('stopBtn').disabled=true; el('startBtn').disabled=false;
+    }
+
+    function stopValidate(){ st.running=false; }
+
+    el('startBtn').addEventListener('click', runValidate);
+    el('stopBtn').addEventListener('click', stopValidate);
+  </script>
+</body>
+</html>
