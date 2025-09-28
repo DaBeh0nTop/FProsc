@@ -1,1403 +1,836 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HOSH | Skin Processor</title>
-    <style>
-        /* Base Styles */
-        :root {
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #1a1a1a;
-            --text-primary: #ffffff;
-            --text-secondary: #888888;
-            --accent: #ff7700;
-            --border: #333333;
-            --success: #00cc66;
-            --warning: #ffcc00;
-            --error: #ff4444;
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>📚 Classwork & To-Do Reminder</title>
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.5;
-            min-height: 100vh;
-            padding: 20px;
-        }
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 
-        /* Header Section */
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding: 20px 0;
-        }
+  <style>
+    /************************************************************
+    * Root theme variables
+    ************************************************************/
+    :root {
+      --bg1:#9FB3DF; 
+      --bg2:#9EC6F3; 
+      --bg3:#A8E6CF; 
+      --bg4:#FFD3B6; 
+      --bg5:#FFAAA5;
+      --panel:rgba(255,255,255,0.12); 
+      --accent:#FFF1D5; 
+      --danger:#ff6961;
+      --text-dark:#1a1a1a; 
+      --success:#66ffb2; 
+      --uploading:#ffe066;
+    }
 
-        .header h1 {
-            font-size: 2rem;
-            font-weight: 600;
-            color: var(--accent);
-            margin-bottom: 8px;
-        }
+    /************************************************************
+    * Base
+    ************************************************************/
+    * { 
+      box-sizing:border-box; 
+      margin:0; 
+      padding:0; 
+    }
+    body {
+      font-family:'Poppins',sans-serif; 
+      min-height:100vh;
+      display:flex; 
+      flex-direction:column; 
+      align-items:center;
+      padding:20px; 
+      color:#fff;
+      background:linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3),var(--bg4),var(--bg5));
+      background-size:600% 600%; 
+      animation:bgMove 18s ease infinite;
+    }
 
-        .header p {
-            color: var(--text-secondary);
-            font-size: 1rem;
-        }
+    @keyframes bgMove { 
+      0%{background-position:0% 50%} 
+      50%{background-position:100% 50%} 
+      100%{background-position:0% 50%} 
+    }
 
-        /* Upload Section */
-        .upload-section {
-            background: var(--bg-secondary);
-            padding: 30px;
-            border: 1px solid var(--border);
-            text-align: center;
-            margin-bottom: 30px;
-            border-radius: 8px;
-        }
+    /************************************************************
+    * Header
+    ************************************************************/
+    header { 
+      text-align:center; 
+      margin-bottom:20px; 
+      width:100%; 
+    }
+    header h1 { 
+      font-size:30px; 
+      font-weight:700; 
+      text-shadow:1px 2px 8px rgba(0,0,0,0.3); 
+    }
+    header h2 { 
+      font-size:14px; 
+      margin-top:6px; 
+      font-weight:400; 
+      opacity:0.85; 
+      animation:fade 2s infinite alternate; 
+    }
+    @keyframes fade { 
+      from{opacity:0.6} 
+      to{opacity:1} 
+    }
 
-        .file-input-wrapper {
-            margin: 20px 0;
-        }
+    /************************************************************
+    * Panels
+    ************************************************************/
+    .container { 
+      width:100%; 
+      max-width:900px; 
+    }
+    .panel {
+      background:var(--panel); 
+      border-radius:16px; 
+      padding:18px; 
+      margin-bottom:20px;
+      backdrop-filter:blur(10px); 
+      box-shadow:0 8px 18px rgba(0,0,0,0.25); 
+      transition:transform .2s;
+    }
+    .panel:hover { 
+      transform:translateY(-3px); 
+    }
+    .small { 
+      font-size:13px; 
+      opacity:0.9; 
+    }
 
-        .file-input {
-            display: none;
-        }
+    /************************************************************
+    * List Items
+    ************************************************************/
+    ul.plain { 
+      list-style:none; 
+      margin:12px 0; 
+      padding:0; 
+    }
+    li.item {
+      background:rgba(255,255,255,0.08); 
+      border-radius:10px; 
+      padding:12px 14px; 
+      margin-bottom:10px;
+      display:flex; 
+      flex-direction:column; 
+      cursor:pointer; 
+      transition:background .25s,transform .25s; 
+      position:relative;
+    }
+    li.item:hover { 
+      background:rgba(255,255,255,0.18); 
+      transform:scale(1.01); 
+    }
+    .subject-line { 
+      font-weight:600; 
+      font-size:15px; 
+      padding-right:96px; /* space for buttons */
+    }
 
-        .upload-btn {
-            background: var(--accent);
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 4px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: opacity 0.2s ease;
-        }
+    /************************************************************
+    * Image summary (tiny thumbnails)
+    ************************************************************/
+    .image-summary { 
+      display:flex; 
+      gap:6px; 
+      margin-top:6px; 
+      flex-wrap:wrap; 
+    }
+    .image-summary img { 
+      width:46px; 
+      height:36px; 
+      object-fit:cover; 
+      border-radius:4px; 
+    }
 
-        .upload-btn:hover {
-            opacity: 0.9;
-        }
+    /************************************************************
+    * Expanded images row
+    ************************************************************/
+    .images-row { 
+      display:none; 
+      gap:8px; 
+      margin-top:8px; 
+      flex-wrap:wrap; 
+    }
+    .image-wrapper { 
+      position:relative; 
+      display:inline-block; 
+    }
+    .images-row img {
+      width:84px; 
+      height:64px; 
+      object-fit:cover; 
+      border-radius:6px;
+      cursor:pointer; 
+      transition:transform .2s;
+    }
+    .images-row img:hover { 
+      transform:scale(1.05); 
+    }
 
-        .file-name {
-            margin-top: 12px;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
+    /************************************************************
+    * Buttons
+    ************************************************************/
+    .btn { 
+      background:var(--accent); 
+      color:var(--text-dark); 
+      border:none; 
+      border-radius:8px; 
+      padding:8px 14px; 
+      font-weight:600; 
+      cursor:pointer; 
+      margin-top:6px; 
+    }
+    .btn-danger { 
+      background:var(--danger); 
+      color:#fff; 
+      font-size:12px; 
+      padding:4px 8px; 
+      border-radius:6px; 
+      position:absolute; 
+      right:8px; 
+      top:8px; 
+    }
 
-        /* Progress and Error Sections */
-        .progress-bar {
-            width: 100%;
-            height: 4px; /* Slightly thicker */
-            background: var(--border);
-            margin: 20px 0;
-            border-radius: 2px;
-        }
+    /* New: Download-all button */
+    .btn-download-all { 
+      background:rgba(0,0,0,0.6); 
+      color:#fff; 
+      font-size:12px; 
+      padding:4px 8px; 
+      border-radius:6px; 
+      position:absolute; 
+      right:44px; 
+      top:8px;
+      border:none;
+      cursor:pointer;
+    }
 
-        .progress-fill {
-            height: 100%;
-            background: var(--accent);
-            transition: width 0.3s ease;
-            border-radius: 2px;
-        }
+    /************************************************************
+    * Inputs
+    ************************************************************/
+    input, textarea { 
+      width:100%; 
+      padding:10px; 
+      margin-top:6px; 
+      border:none; 
+      border-radius:10px; 
+      background:rgba(255,255,255,0.08); 
+      color:#fff; 
+      font-size:14px; 
+    }
+    textarea { 
+      min-height:70px; 
+      resize:vertical; 
+    }
 
-        .processing-info {
-            text-align: center;
-            color: var(--text-secondary);
-            margin: 20px 0;
-            font-size: 0.9rem;
-        }
+    .file-input { 
+      display:inline-block; 
+      padding:8px 12px; 
+      border-radius:10px; 
+      background:rgba(255,255,255,0.18); 
+      margin-top:8px; 
+      cursor:pointer; 
+      font-size:14px; 
+    }
+    .file-input input { 
+      display:none; 
+    }
+    .file-count { 
+      font-size:12px; 
+      opacity:0.8; 
+      margin-top:4px; 
+    }
 
-        .error-message {
-            color: var(--error);
-            background: #2a1a1a;
-            padding: 15px;
-            border-radius: 4px;
-            margin: 20px 0;
-            border: 1px solid var(--error);
-            font-size: 0.9rem;
-        }
+    .uploading { 
+      margin-top:6px; 
+      font-size:13px; 
+      color:var(--uploading); 
+      animation:blink 1.2s infinite; 
+    }
+    @keyframes blink { 
+      0%,100% { opacity:0.6; } 
+      50% { opacity:1 } 
+    }
 
-        /* Results Section */
-        .stats-grid {
-            display: grid; /* Use grid for better control */
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive columns */
-            gap: 16px;
-            margin-bottom: 30px;
-        }
+    pre { 
+      white-space:pre-wrap; 
+      max-height:250px; 
+      overflow:auto; 
+      font-size:12px; 
+      background:rgba(0,0,0,0.3); 
+      padding:8px; 
+      border-radius:8px; 
+    }
 
-        .stat-card {
-            background: var(--bg-secondary);
-            padding: 20px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            text-align: center;
-        }
+    /************************************************************
+    * Admin toggle (bottom right)
+    ************************************************************/
+    #adminToggle {
+      position:fixed; 
+      bottom:20px; 
+      right:20px;
+      background:var(--accent); 
+      color:var(--text-dark);
+      border:none; 
+      border-radius:10px; 
+      padding:8px 14px; 
+      font-weight:600; 
+      cursor:pointer;
+      box-shadow:0 4px 10px rgba(0,0,0,0.25); 
+      transition:transform .2s;
+    }
+    #adminToggle:hover { 
+      transform:scale(1.05); 
+    }
+    #logoutBtn { 
+      display:none; 
+    }
 
-        .stat-card h3 {
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
+    .hidden { 
+      display:none!important; 
+    }
 
-        .stat-value {
-            font-size: 2rem; /* Slightly larger */
-            font-weight: 600;
-            color: var(--accent);
-        }
-
-        .chart-section {
-            background: var(--bg-secondary);
-            padding: 24px;
-            border: 1px solid var(--border);
-            margin-bottom: 24px;
-            border-radius: 8px;
-        }
-
-        .chart-title {
-            color: var(--text-primary);
-            margin-bottom: 20px;
-            font-size: 1.2rem; /* Slightly larger */
-            font-weight: 600;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 10px;
-        }
-
-        .distribution-bar {
-            display: flex;
-            align-items: center;
-            margin: 8px 0;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05); /* Lighter border */
-            white-space: nowrap;
-            font-size: 0.9rem;
-        }
-
-        .distribution-bar:last-child {
-            border-bottom: none; /* No border on last item */
-        }
-
-        .bar-label {
-            width: 120px; /* Increased width for labels */
-            font-weight: 500;
-            color: var(--text-primary);
-            flex-shrink: 0; /* Prevent shrinking */
-        }
-
-        .bar-count {
-            width: 60px; /* Increased width for counts */
-            text-align: right;
-            color: var(--text-secondary);
-            margin-right: 12px;
-            font-size: 0.9rem;
-            flex-shrink: 0;
-        }
-
-        .bar-percent {
-            width: 50px; /* Increased width for percentage */
-            text-align: right;
-            color: var(--accent);
-            margin-right: 12px;
-            font-size: 0.9rem;
-            flex-shrink: 0;
-        }
-
-        .bar-fill {
-            flex: 1;
-            height: 18px; /* Slightly taller */
-            background: #2a2a2a;
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .bar-progress {
-            height: 100%;
-            background: var(--accent);
-            transition: width 0.3s ease;
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 8px; /* Larger indicator */
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 8px; /* More space */
-            vertical-align: middle;
-        }
-
-        .status-active { background: var(--success); }
-        .status-semi { background: var(--warning); }
-        .status-inactive { background: var(--error); }
-
-        /* Accounts Preview Table */
-        .accounts-preview {
-            background: var(--bg-secondary);
-            padding: 24px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-        }
-
-        .selected-count {
-            margin-top: 16px;
-            color: var(--accent);
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-
-        .table-container {
-            max-height: 400px;
-            overflow-y: auto;
-            margin-bottom: 16px;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-        }
-
-        .preview-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .preview-table th {
-            background: #2a2a2a;
-            padding: 12px;
-            text-align: left;
-            color: var(--text-primary);
-            font-weight: 500;
-            font-size: 0.9rem;
-            border-bottom: 2px solid var(--border);
-            position: sticky; /* Sticky header */
-            top: 0;
-            z-index: 1;
-        }
-
-        .preview-table td {
-            padding: 12px;
-            color: var(--text-secondary);
-            font-size: 0.85rem; /* Slightly smaller font */
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .preview-table tr:hover {
-            background: #2a2a2a;
-        }
-
-        .preview-table tr.selected {
-            background: #3a2a1a;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-            justify-content: flex-end; /* Align to right */
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: opacity 0.2s ease, background-color 0.2s ease;
-            font-size: 0.9rem;
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            opacity: 0.9;
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-        }
-
-        .btn-secondary:hover {
-            background: #2a2a2a;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 100; /* High z-index */
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.8); /* Darker overlay */
-            padding-top: 60px;
-            backdrop-filter: blur(5px); /* Blur background */
-        }
-
-        .modal-content {
-            background-color: var(--bg-secondary);
-            margin: 5% auto;
-            padding: 30px;
-            border: 1px solid var(--border);
-            width: 90%; /* Wider on desktop */
-            max-width: 550px; /* Max width */
-            border-radius: 10px; /* More rounded */
-            position: relative;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-        }
-
-        .modal-content h2 {
-            color: var(--text-primary);
-            margin-bottom: 20px;
-            font-size: 1.6rem; /* Larger title */
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 10px;
-        }
-
-        .modal-content label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-        }
-
-        .modal-content input[type="number"],
-        .modal-content input[type="text"] {
-            width: calc(100% - 22px); /* Adjust for padding/border */
-            padding: 12px; /* More padding */
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
-            background: #2a2a2a;
-            color: var(--text-primary);
-            border-radius: 6px; /* More rounded */
-            font-size: 1rem;
-        }
-
-        .modal-content .radio-group {
-            margin-bottom: 20px;
-        }
-
-        .modal-content .radio-group label {
-            display: flex;
-            align-items: center;
-            margin-bottom: 12px; /* More space */
-            cursor: pointer;
-            font-size: 0.95rem;
-        }
-
-        .modal-content .radio-group input[type="radio"] {
-            margin-right: 12px; /* More space */
-            transform: scale(1.2); /* Larger radio buttons */
-            accent-color: var(--accent);
-        }
-
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .modal-preview-list {
-            max-height: 350px; /* Taller list */
-            overflow-y: auto;
-            background: #2a2a2a;
-            border: 1px solid var(--border);
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            color: var(--text-primary);
-            line-height: 1.6;
-        }
-
-        .modal-preview-list div {
-            margin-bottom: 5px;
-            word-break: break-all; /* Break long lines */
-        }
-
-        .modal-preview-actions {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .modal-preview-actions .btn {
-            padding: 12px 25px;
-            font-size: 1rem;
-        }
-
-        /* Responsive Adjustments */
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            .container {
-                padding: 0;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr; /* Single column on small screens */
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-                align-items: stretch; /* Stretch buttons */
-            }
-            
-            .btn {
-                width: 100%;
-            }
-            
-            .preview-table {
-                font-size: 0.75rem; /* Smaller font for table */
-            }
-            
-            .preview-table th,
-            .preview-table td {
-                padding: 8px;
-            }
-
-            .modal-content {
-                width: 95%;
-                margin: 20px auto;
-                padding: 20px;
-            }
-
-            .modal-content h2 {
-                font-size: 1.4rem;
-            }
-
-            .bar-label {
-                width: 90px;
-            }
-            .bar-count {
-                width: 50px;
-            }
-            .bar-percent {
-                width: 45px;
-            }
-        }
-    </style>
+    @media(max-width:600px){
+      .images-row img { 
+        width:48%; 
+        height:100px; 
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>HOSH | SKIN PROCESSOR</h1>
-            <p>Analyze gaming account data</p>
-        </div>
-
-        <div class="upload-section">
-            <h2>Upload Data</h2>
-            <p>Select a text file with account information</p>
-            <div class="file-input-wrapper">
-                <label for="fileInput" class="upload-btn">Choose TXT File</label>
-                <input type="file" id="fileInput" class="file-input" accept=".txt">
-            </div>
-            <div id="fileName" class="file-name">No file selected</div>
-        </div>
-
-        <div id="progressSection" class="hidden">
-            <div class="progress-bar">
-                <div id="progressFill" class="progress-fill" style="width: 0%"></div>
-            </div>
-            <div class="processing-info">
-                Processing file... Please wait
-            </div>
-        </div>
-
-        <div id="errorSection" class="hidden"></div>
-
-        <div id="resultsSection" class="hidden">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Total Accounts</h3>
-                    <div id="totalAccounts" class="stat-value">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Valid Accounts</h3>
-                    <div id="validAccounts" class="stat-value">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Average Skins</h3>
-                    <div id="avgSkins" class="stat-value">0.0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Max Skins</h3>
-                    <div id="maxSkins" class="stat-value">0</div>
-                </div>
-            </div>
-
-            <div class="chart-section">
-                <h3 class="chart-title">Skin Distribution</h3>
-                <div id="skinDistribution"></div>
-            </div>
-
-            <div class="chart-section">
-                <h3 class="chart-title">Level Distribution</h3>
-                <div id="levelDistribution"></div>
-            </div>
-
-            <div class="chart-section">
-                <h3 class="chart-title">Account Status</h3>
-                <div id="accountStatus"></div>
-            </div>
-
-            <div class="accounts-preview">
-                <h3 class="chart-title">All Accounts</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 16px;">
-                    All processed accounts sorted by skin count
-                </p>
-                <div id="selectedCount" class="selected-count hidden">0 accounts selected</div>
-                
-                <div class="table-container">
-                    <table class="preview-table">
-                        <thead>
-                            <tr>
-                                <th>Select</th>
-                                <th>Level</th>
-                                <th>Skins</th>
-                                <th>Nickname</th>
-                                <th>Status</th>
-                                <th>Email</th>
-                                <th>Last Login</th>
-                            </tr>
-                        </thead>
-                        <tbody id="previewTableBody"></tbody>
-                    </table>
-                </div>
-                
-                <div class="action-buttons">
-                    <button id="processSelectedBtn" class="btn btn-primary hidden">Process Selected Accounts</button>
-                    <button id="selectAllBtn" class="btn btn-secondary">Select All</button>
-                    <button id="clearSelectionBtn" class="btn btn-secondary">Clear Selection</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Processing Modal -->
-    <div id="processingModal" class="modal">
-        <div class="modal-content">
-            <div id="step1">
-                <h2>Process Accounts</h2>
-                <label for="numAccounts">Number of accounts to pull:</label>
-                <input type="number" id="numAccounts" min="1" value="1">
-
-                <div class="radio-group">
-                    <label>
-                        <input type="radio" name="processMethod" value="topToBottom" checked>
-                        Process by Skin (Top to Bottom)
-                    </label>
-                    <label>
-                        <input type="radio" name="processMethod" value="randomizedBalanced">
-                        Process Randomized (Balanced by Skin Category)
-                    </label>
-                </div>
-                <div class="modal-buttons">
-                    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                    <button class="btn btn-primary" onclick="generatePreview()">Next</button>
-                </div>
-            </div>
-
-            <div id="step2" class="hidden">
-                <h2>Review Accounts</h2>
-                <div class="modal-preview-list" id="modalPreviewList">
-                    <!-- Accounts will be listed here -->
-                </div>
-                <div class="modal-preview-actions">
-                    <button class="btn btn-primary" onclick="confirmProcess()">Y (Confirm)</button>
-                    <button class="btn btn-secondary" onclick="cancelProcess()">N (Cancel)</button>
-                    <button class="btn btn-secondary" onclick="reshuffleAccounts()">R (Reshuffle)</button>
-                </div>
-            </div>
-
-            <div id="step3" class="hidden">
-                <h2>Save File</h2>
-                <label for="outputFileName">Enter file name (e.g., myaccounts.txt):</label>
-                <input type="text" id="outputFileName" placeholder="accounts.txt">
-                <div class="modal-buttons">
-                    <button class="btn btn-secondary" onclick="cancelProcess()">Cancel</button>
-                    <button class="btn btn-primary" onclick="downloadProcessedFile()">Download</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Constants
-        const DECORATION_CHARS = "═╔╗║╝╚─━";
-        const LEVEL_BRACKETS = [
-            [50, 60], [61, 80], [81, 100], [101, 200], [201, 250]
-        ];
-        const SKIN_RANGES = [
-            [100, 200, "100–200"],
-            [201, 300, "201–300"],
-            [301, 400, "301–400"],
-            [401, 500, "401–500"],
-            [501, 600, "501–600"],
-            [601, 700, "601–700"],
-            [701, 800, "701–800"]
-        ];
-
-        // DOM Elements
-        const fileInput = document.getElementById('fileInput');
-        const fileName = document.getElementById('fileName');
-        const progressSection = document.getElementById('progressSection');
-        const progressFill = document.getElementById('progressFill');
-        const resultsSection = document.getElementById('resultsSection');
-        const errorSection = document.getElementById('errorSection');
-        const totalAccounts = document.getElementById('totalAccounts');
-        const validAccounts = document.getElementById('validAccounts');
-        const avgSkins = document.getElementById('avgSkins');
-        const maxSkins = document.getElementById('maxSkins');
-        const skinDistribution = document.getElementById('skinDistribution');
-        const levelDistribution = document.getElementById('levelDistribution');
-        const accountStatus = document.getElementById('accountStatus');
-        const previewTableBody = document.getElementById('previewTableBody');
-        const processSelectedBtn = document.getElementById('processSelectedBtn');
-        const selectAllBtn = document.getElementById('selectAllBtn');
-        const clearSelectionBtn = document.getElementById('clearSelectionBtn');
-        const selectedCount = document.getElementById('selectedCount');
-
-        // Modal Elements
-        const processingModal = document.getElementById('processingModal');
-        const step1 = document.getElementById('step1');
-        const step2 = document.getElementById('step2');
-        const step3 = document.getElementById('step3');
-        const numAccountsInput = document.getElementById('numAccounts');
-        const modalPreviewList = document.getElementById('modalPreviewList');
-        const outputFileNameInput = document.getElementById('outputFileName');
-
-        // Global variables
-        let allAccounts = []; // Stores all valid accounts from the file
-        let selectedAccountIndices = new Set(); // Stores indices of accounts selected in the table
-        let accountsToProcess = []; // Stores the accounts chosen for the current processing operation
-        let originalFileContent = ''; // Store the original file content for re-parsing if needed
-
-        // Regex patterns - UPDATED for your file format
-        // This regex now accounts for an optional leading number and dot (e.g., "227.")
-        // It looks for any characters at the start, followed by email:pass => =>
-        const BLOCK_START_REGEX = /^\s*.*?[^\s@]+@[^\s@]+\s*:\s*[^\s]+\s*=>\s*=>\s*$/i;
-        const OLD_BLOCK_START_REGEX = /^\d+\.\)\s+.*?:.*/; // Keep this for older formats if needed
-        
-        // More robust regex for Level and Skin to handle various whitespaces/separators
-        // Changed to specifically look for "Level   : " and "Skin    : " as per your example
-        const NICK_REGEX = /Nickname\s*:\s*([^\n\r]+)/i;
-        const LEVEL_REGEX = /Level\s*:\s*(\d+)/i; 
-        const SKIN_REGEX = /Skin\s*:\s*([\d,]+)/i; 
-
-        const EMAIL_REGEX = /[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/;
-        const LAST_LOGIN_REGEX = /Last\s*Log\s*in\s*:\s*([0-9]{4}[\/\-][0-9]{1,2}[\/\-][0-9]{1,2}\s+[0-9]{1,2}:[0-9]{2}:[0-9]{2})/i;
-        
-        // This regex captures the full email:pass part, including the leading number if present
-        // It captures everything from the start of the line up to " => =>"
-        const EMAIL_PASS_LINE_REGEX = /^\s*(.*?)\s*=>\s*=>\s*$/i;
-
-
-        // Helper functions
-        function isDecorative(line) {
-            return Array.from(line).every(c => DECORATION_CHARS.includes(c) || c === ' ');
-        }
-
-        function tryParseInt(s) {
-            try {
-                return parseInt(s.replace(/,/g, ''));
-            } catch {
-                return null;
-            }
-        }
-
-        function daysSince(dateStr) {
-            if (!dateStr) return null;
-            
-            // Try different date formats
-            let date;
-            try {
-                date = new Date(dateStr.replace(/\//g, '-'));
-                if (isNaN(date.getTime())) {
-                    date = new Date(dateStr);
-                }
-            } catch {
-                return null;
-            }
-            
-            if (isNaN(date.getTime())) return null;
-            
-            const now = new Date();
-            const diffTime = Math.abs(now - date);
-            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        }
-
-        function getLevelBracket(level) {
-            for (const [start, end] of LEVEL_BRACKETS) {
-                if (level >= start && level <= end) {
-                    return `${start}-${end}`;
-                }
-            }
-            return null;
-        }
-
-        function getSkinRange(skin) {
-            const skinNum = tryParseInt(skin);
-            if (skinNum === null) return null;
-            
-            if (skinNum <= 99) return "99↓";
-            
-            for (const [start, end, label] of SKIN_RANGES) {
-                if (skinNum >= start && skinNum <= end) {
-                    return label;
-                }
-            }
-            // If skin is outside defined ranges, categorize it as "Other" or extend ranges
-            return "Other"; // Or define more ranges
-        }
-
-        function showError(message) {
-            errorSection.innerHTML = `<div class="error-message">${message}</div>`;
-            errorSection.classList.remove('hidden');
-            progressSection.classList.add('hidden');
-        }
-
-        function showModal(step) {
-            processingModal.style.display = 'block';
-            step1.classList.add('hidden');
-            step2.classList.add('hidden');
-            step3.classList.add('hidden');
-            if (step === 1) step1.classList.remove('hidden');
-            else if (step === 2) step2.classList.remove('hidden');
-            else if (step === 3) step3.classList.remove('hidden');
-        }
-
-        function closeModal() {
-            processingModal.style.display = 'none';
-            // Reset modal to step 1
-            showModal(1);
-        }
-
-        // File processing
-        fileInput.addEventListener('change', async (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            fileName.textContent = file.name;
-            progressSection.classList.remove('hidden');
-            resultsSection.classList.add('hidden');
-            errorSection.classList.add('hidden');
-            selectedAccountIndices.clear();
-            allAccounts = [];
-            accountsToProcess = [];
-
-            try {
-                // Check if file is text file
-                if (!file.type.includes('text/') && !file.name.endsWith('.txt')) {
-                    throw new Error('Please select a valid text file (.txt)');
-                }
-
-                const text = await file.text();
-                originalFileContent = text; // Store original content
-                
-                // Check if file has content
-                if (!text.trim()) {
-                    throw new Error('The file is empty');
-                }
-
-                console.log('File content loaded successfully');
-                processFile(text);
-            } catch (error) {
-                console.error('Error reading file:', error);
-                showError(`Error: ${error.message || 'Failed to read file'}`);
-            }
-        });
-
-        function processFile(content) {
-            // Reset progress
-            progressFill.style.width = '0%';
-            
-            // Simulate progress
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                progress += 5;
-                progressFill.style.width = `${progress}%`;
-                
-                if (progress >= 100) {
-                    clearInterval(progressInterval);
-                    try {
-                        const lines = content.split('\n');
-                        console.log(`Processing ${lines.length} lines`);
-                        const result = parseBlocks(lines);
-                        
-                        if (result.valid.length === 0) {
-                            showError('No valid accounts found in the file. Please check the file format and ensure it contains Level and Skin data.');
-                            return;
-                        }
-                        
-                        allAccounts = result.valid;
-                        console.log(`Found ${result.valid.length} valid accounts`);
-                        displayResults(result.valid, result.total, result.levelCounts, result.activeCounts);
-                    } catch (error) {
-                        console.error('Error processing file:', error);
-                        showError(`Processing error: ${error.message}`);
-                    }
-                }
-            }, 30);
-        }
-
-        function parseBlocks(lines) {
-            const blocks = [];
-            let currentBlockLines = []; // Store lines for the current block
-            let totalBlocks = 0;
-
-            // First pass: identify blocks and group lines
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-                const trimmedLine = line.trim();
-                
-                if (BLOCK_START_REGEX.test(trimmedLine) || OLD_BLOCK_START_REGEX.test(trimmedLine)) {
-                    if (currentBlockLines.length > 0) {
-                        blocks.push(currentBlockLines.join('\n'));
-                        currentBlockLines = [];
-                    }
-                    currentBlockLines.push(line); // Add the block start line
-                } else if (trimmedLine && !isDecorative(trimmedLine)) {
-                    currentBlockLines.push(line); // Add other relevant lines
-                }
-            }
-            
-            if (currentBlockLines.length > 0) {
-                blocks.push(currentBlockLines.join('\n'));
-            }
-
-            totalBlocks = blocks.length;
-            const valid = [];
-            const levelCounts = {};
-            const activeCounts = { Active: 0, 'Semi Active': 0, Inactive: 0 };
-
-            console.log(`Found ${totalBlocks} potential account blocks`);
-
-            // Second pass: parse each block
-            for (const block of blocks) {
-                try {
-                    const levelMatch = block.match(LEVEL_REGEX);
-                    const skinMatch = block.match(SKIN_REGEX);
-                    const emailPassLineMatch = block.match(EMAIL_PASS_LINE_REGEX); // Use the new regex
-
-                    // Log block content and regex matches for debugging
-                    console.log("--- Processing Block ---");
-                    console.log(block);
-                    console.log("Level Match:", levelMatch);
-                    console.log("Skin Match:", skinMatch);
-                    console.log("EmailPassLine Match:", emailPassLineMatch);
-
-
-                    if (levelMatch && skinMatch && emailPassLineMatch && emailPassLineMatch[1]) {
-                        const level = tryParseInt(levelMatch[1]);
-                        const skins = tryParseInt(skinMatch[1]);
-                        const nickname = (block.match(NICK_REGEX) || [])[1] ? block.match(NICK_REGEX)[1].trim() : 'N/A';
-                        const email = (block.match(EMAIL_REGEX) || [])[0] || 'N/A';
-                        const lastLogin = (block.match(LAST_LOGIN_REGEX) || [])[1] ? block.match(LAST_LOGIN_REGEX)[1].trim() : '';
-                        const emailPass = emailPassLineMatch[1].trim(); // Extract email:pass from the captured group
-
-                        // Validate data
-                        if (level !== null && skins !== null) {
-                            // Level distribution
-                            const bracket = getLevelBracket(level);
-                            if (bracket) {
-                                levelCounts[bracket] = (levelCounts[bracket] || 0) + 1;
-                            }
-
-                            // Activity status
-                            let status = 'Unknown';
-                            if (lastLogin) {
-                                const daysOffline = daysSince(lastLogin);
-                                if (daysOffline !== null) {
-                                    if (daysOffline <= 4) {
-                                        status = 'Active';
-                                        activeCounts.Active++;
-                                    } else if (daysOffline <= 9) {
-                                        status = 'Semi Active';
-                                        activeCounts['Semi Active']++;
-                                    } else {
-                                        status = 'Inactive';
-                                        activeCounts.Inactive++;
-                                    }
-                                }
-                            }
-
-                            valid.push({
-                                originalBlock: block, // Store the original block content
-                                emailPass: emailPass, // Store email:pass
-                                level,
-                                skins,
-                                nickname,
-                                email,
-                                lastLogin,
-                                status
-                            });
-                            console.log("Valid account added:", { emailPass, level, skins });
-                        } else {
-                            console.log("Skipping block: Level or Skin data missing/invalid.");
-                        }
-                    } else {
-                        console.log("Skipping block: Missing Level, Skin, or EmailPassLine match.");
-                    }
-                } catch (error) {
-                    console.warn('Error parsing block:', error);
-                }
-            }
-
-            // Sort by skins descending
-            valid.sort((a, b) => b.skins - a.skins);
-
-            return { valid, total: totalBlocks, levelCounts, activeCounts };
-        }
-
-        function displayResults(valid, total, levelCounts, activeCounts) {
-            progressSection.classList.add('hidden');
-            resultsSection.classList.remove('hidden');
-            errorSection.classList.add('hidden');
-
-            // Update statistics
-            totalAccounts.textContent = total.toLocaleString();
-            validAccounts.textContent = valid.length.toLocaleString();
-            
-            const skinCounts = valid.map(acc => acc.skins).filter(s => s !== null);
-            const avgSkin = skinCounts.length > 0 ? 
-                (skinCounts.reduce((a, b) => a + b, 0) / skinCounts.length).toFixed(1) : '0.0';
-            const maxSkin = skinCounts.length > 0 ? Math.max(...skinCounts) : '0';
-            
-            avgSkins.textContent = maxSkin; // Display max skin as average for now, as per previous request
-            maxSkins.textContent = maxSkin.toLocaleString();
-
-            // Update distributions and table
-            updateDistributions(valid, levelCounts, activeCounts);
-            updatePreviewTable(valid);
-
-            // Setup event listeners for main buttons
-            setupMainEventListeners();
-        }
-
-        function updateDistributions(valid, levelCounts, activeCounts) {
-            // Skin distribution
-            const skinDist = {};
-            // Initialize all SKIN_RANGES labels to 0
-            SKIN_RANGES.forEach(([_, __, label]) => skinDist[label] = 0);
-            skinDist["99↓"] = 0; // Initialize "99↓" category
-            skinDist["Other"] = 0; // Initialize "Other" category for skins outside defined ranges
-
-            for (const acc of valid) {
-                const range = getSkinRange(acc.skins);
-                if (range) {
-                    skinDist[range] = (skinDist[range] || 0) + 1;
-                }
-            }
-
-            skinDistribution.innerHTML = '';
-            // Display "99↓" first if it has counts
-            if (skinDist["99↓"] > 0) {
-                const count = skinDist["99↓"];
-                const percent = valid.length > 0 ? Math.round((count / valid.length) * 100) : 0;
-                const bar = document.createElement('div');
-                bar.className = 'distribution-bar';
-                bar.innerHTML = `
-                    <div class="bar-label">99↓</div>
-                    <div class="bar-count">${count}</div>
-                    <div class="bar-percent">${percent}%</div>
-                    <div class="bar-fill">
-                        <div class="bar-progress" style="width: ${percent}%"></div>
-                    </div>
-                `;
-                skinDistribution.appendChild(bar);
-            }
-
-            // Display defined SKIN_RANGES
-            for (const [start, end, label] of SKIN_RANGES) {
-                const count = skinDist[label] || 0; // Use initialized value
-                const percent = valid.length > 0 ? Math.round((count / valid.length) * 100) : 0;
-                
-                const bar = document.createElement('div');
-                bar.className = 'distribution-bar';
-                bar.innerHTML = `
-                    <div class="bar-label">${label}</div>
-                    <div class="bar-count">${count}</div>
-                    <div class="bar-percent">${percent}%</div>
-                    <div class="bar-fill">
-                        <div class="bar-progress" style="width: ${percent}%"></div>
-                    </div>
-                `;
-                skinDistribution.appendChild(bar);
-            }
-
-            // Display "Other" last if it has counts
-            if (skinDist["Other"] > 0) {
-                const count = skinDist["Other"];
-                const percent = valid.length > 0 ? Math.round((count / valid.length) * 100) : 0;
-                const bar = document.createElement('div');
-                bar.className = 'distribution-bar';
-                bar.innerHTML = `
-                    <div class="bar-label">Other</div>
-                    <div class="bar-count">${count}</div>
-                    <div class="bar-percent">${percent}%</div>
-                    <div class="bar-fill">
-                        <div class="bar-progress" style="width: ${percent}%"></div>
-                    </div>
-                `;
-                skinDistribution.appendChild(bar);
-            }
-
-
-            // Level distribution
-            levelDistribution.innerHTML = '';
-            // Initialize all LEVEL_BRACKETS labels to 0
-            const initializedLevelCounts = {};
-            LEVEL_BRACKETS.forEach(([start, end]) => {
-                const label = `${start}-${end}`;
-                initializedLevelCounts[label] = 0;
-            });
-            // Merge with actual counts
-            Object.assign(initializedLevelCounts, levelCounts);
-
-            for (const [start, end] of LEVEL_BRACKETS) {
-                const label = `${start}-${end}`;
-                const count = initializedLevelCounts[label] || 0;
-                const percent = valid.length > 0 ? Math.round((count / valid.length) * 100) : 0;
-                
-                const bar = document.createElement('div');
-                bar.className = 'distribution-bar';
-                bar.innerHTML = `
-                    <div class="bar-label">${label}</div>
-                    <div class="bar-count">${count}</div>
-                    <div class="bar-percent">${percent}%</div>
-                    <div class="bar-fill">
-                        <div class="bar-progress" style="width: ${percent}%"></div>
-                    </div>
-                `;
-                levelDistribution.appendChild(bar);
-            }
-
-            // Account status
-            accountStatus.innerHTML = '';
-            const statusOrder = ['Active', 'Semi Active', 'Inactive']; // Define a consistent order
-            // Initialize all status counts to 0
-            const initializedActiveCounts = { 'Active': 0, 'Semi Active': 0, 'Inactive': 0 };
-            Object.assign(initializedActiveCounts, activeCounts);
-
-            for (const status of statusOrder) {
-                const count = initializedActiveCounts[status] || 0;
-                const percent = valid.length > 0 ? Math.round((count / valid.length) * 100) : 0;
-                const statusClass = status.toLowerCase().replace(' ', '-');
-                
-                const bar = document.createElement('div');
-                bar.className = 'distribution-bar';
-                bar.innerHTML = `
-                    <div class="bar-label">
-                        <span class="status-indicator status-${statusClass}"></span>
-                        ${status}
-                    </div>
-                    <div class="bar-count">${count}</div>
-                    <div class="bar-percent">${percent}%</div>
-                    <div class="bar-fill">
-                        <div class="bar-progress" style="width: ${percent}%"></div>
-                    </div>
-                `;
-                accountStatus.appendChild(bar);
-            }
-        }
-
-        function setupMainEventListeners() {
-            // Process Selected Accounts button
-            processSelectedBtn.onclick = () => {
-                if (selectedAccountIndices.size === 0) {
-                    alert('Please select at least one account to process.');
-                    return;
-                }
-                numAccountsInput.max = selectedAccountIndices.size;
-                numAccountsInput.value = selectedAccountIndices.size; // Default to all selected
-                showModal(1);
-            };
-
-            // Select all functionality
-            selectAllBtn.onclick = () => {
-                selectedAccountIndices.clear(); // Clear existing selection
-                allAccounts.forEach((_, index) => selectedAccountIndices.add(index));
-                updatePreviewTable(allAccounts); // Re-render table to show all selected
-                updateSelectionUI();
-            };
-
-            // Clear selection functionality
-            clearSelectionBtn.onclick = () => {
-                selectedAccountIndices.clear();
-                updatePreviewTable(allAccounts); // Re-render table to clear checkboxes
-                updateSelectionUI();
-            };
-        }
-
-        function updatePreviewTable(accounts) {
-            previewTableBody.innerHTML = '';
-            
-            accounts.forEach((acc, index) => {
-                const row = document.createElement('tr');
-                const isSelected = selectedAccountIndices.has(index);
-                if (isSelected) {
-                    row.classList.add('selected');
-                }
-                row.innerHTML = `
-                    <td>
-                        <input type="checkbox" data-index="${index}" ${isSelected ? 'checked' : ''} onchange="toggleAccountSelection(${index}, this.checked)">
-                    </td>
-                    <td>${acc.level}</td>
-                    <td>${acc.skins.toLocaleString()}</td>
-                    <td>${acc.nickname}</td>
-                    <td>${acc.status}</td>
-                    <td>${acc.email}</td>
-                    <td>${acc.lastLogin || 'N/A'}</td>
-                `;
-                previewTableBody.appendChild(row);
-            });
-        }
-
-        function toggleAccountSelection(index, isSelected) {
-            if (isSelected) {
-                selectedAccountIndices.add(index);
-            } else {
-                selectedAccountIndices.delete(index);
-            }
-            updateSelectionUI();
-        }
-
-        function updateSelectionUI() {
-            const count = selectedAccountIndices.size;
-            selectedCount.textContent = `${count} account${count !== 1 ? 's' : ''} selected`;
-            
-            if (count > 0) {
-                selectedCount.classList.remove('hidden');
-                processSelectedBtn.classList.remove('hidden');
-            } else {
-                selectedCount.classList.add('hidden');
-                processSelectedBtn.classList.add('hidden');
-            }
-            // Update row highlighting for accounts currently visible in the preview table
-            const rows = previewTableBody.querySelectorAll('tr');
-            rows.forEach(row => {
-                const checkbox = row.querySelector('input[type="checkbox"]');
-                if (checkbox) {
-                    const index = parseInt(checkbox.dataset.index);
-                    if (selectedAccountIndices.has(index)) {
-                        row.classList.add('selected');
-                    } else {
-                        row.classList.remove('selected');
-                    }
-                }
-            });
-        }
-
-        function generatePreview() {
-            const numToPull = parseInt(numAccountsInput.value);
-            if (isNaN(numToPull) || numToPull <= 0) {
-                alert('Please enter a valid number of accounts to pull.');
-                return;
-            }
-            if (numToPull > selectedAccountIndices.size) {
-                alert(`You can only pull up to ${selectedAccountIndices.size} selected accounts.`);
-                return;
-            }
-
-            const selectedAccountsArray = Array.from(selectedAccountIndices).map(index => allAccounts[index]);
-            const processMethod = document.querySelector('input[name="processMethod"]:checked').value;
-
-            if (processMethod === 'topToBottom') {
-                // Already sorted by skins descending, just take the top N
-                accountsToProcess = selectedAccountsArray.slice(0, numToPull);
-            } else if (processMethod === 'randomizedBalanced') {
-                accountsToProcess = getBalancedRandomAccounts(selectedAccountsArray, numToPull);
-            }
-
-            displayProcessedAccountsPreview();
-            showModal(2);
-        }
-
-        function getBalancedRandomAccounts(sourceAccounts, numToPull) {
-            const categorizedAccounts = {};
-            SKIN_RANGES.forEach(([_, __, label]) => categorizedAccounts[label] = []);
-            categorizedAccounts["99↓"] = []; // Add the low skin category
-            categorizedAccounts["Other"] = []; // Add "Other" category
-
-            sourceAccounts.forEach(acc => {
-                const range = getSkinRange(acc.skins);
-                if (range && categorizedAccounts[range]) {
-                    categorizedAccounts[range].push(acc);
-                } else { // Fallback for "Other" or undefined ranges
-                    categorizedAccounts["Other"].push(acc);
-                }
-            });
-
-            let pulledAccounts = [];
-            let remainingToPull = numToPull;
-
-            // Shuffle each category
-            for (const category in categorizedAccounts) {
-                categorizedAccounts[category].sort(() => Math.random() - 0.5);
-            }
-
-            // Calculate initial pull distribution based on category sizes
-            const totalSource = sourceAccounts.length;
-            const categoryPullCounts = {};
-            for (const category in categorizedAccounts) {
-                categoryPullCounts[category] = Math.floor((categorizedAccounts[category].length / totalSource) * numToPull);
-                remainingToPull -= categoryPullCounts[category];
-            }
-
-            // Distribute remaining accounts (due to flooring)
-            let categoriesSortedByRemaining = Object.keys(categorizedAccounts).sort((a, b) => 
-                (categorizedAccounts[b].length - categoryPullCounts[b]) - (categorizedAccounts[a].length - categoryPullCounts[a])
-            );
-
-            let idx = 0;
-            while (remainingToPull > 0 && categoriesSortedByRemaining.length > 0) {
-                const category = categoriesSortedByRemaining[idx % categoriesSortedByRemaining.length];
-                if (categoryPullCounts[category] < categorizedAccounts[category].length) {
-                    categoryPullCounts[category]++;
-                    remainingToPull--;
-                }
-                idx++;
-                // If we've iterated through all categories and still need more, reset index
-                if (idx >= categoriesSortedByRemaining.length && remainingToPull > 0) {
-                    // Filter out categories that are now empty or fully allocated
-                    categoriesSortedByRemaining = categoriesSortedByRemaining.filter(cat => 
-                        categoryPullCounts[cat] < categorizedAccounts[cat].length
-                    );
-                    idx = 0; // Reset index for next round
-                }
-            }
-
-            // Pull accounts based on calculated counts
-            for (const category in categoryPullCounts) {
-                const count = Math.min(categoryPullCounts[category], categorizedAccounts[category].length); // Don't pull more than available
-                pulledAccounts.push(...categorizedAccounts[category].splice(0, count));
-            }
-
-            // If somehow we still don't have enough (e.g., due to rounding or very small categories),
-            // or if we pulled too many (shouldn't happen with min check), adjust.
-            // This ensures we get exactly numToPull accounts.
-            if (pulledAccounts.length > numToPull) {
-                pulledAccounts = pulledAccounts.slice(0, numToPull);
-            } else if (pulledAccounts.length < numToPull) {
-                // If still short, just grab remaining randomly from any category
-                const flatRemaining = [];
-                for (const category in categorizedAccounts) {
-                    flatRemaining.push(...categorizedAccounts[category]);
-                }
-                flatRemaining.sort(() => Math.random() - 0.5); // Shuffle remaining
-                pulledAccounts.push(...flatRemaining.slice(0, numToPull - pulledAccounts.length));
-            }
-
-            pulledAccounts.sort(() => Math.random() - 0.5); // Final shuffle for good measure
-            return pulledAccounts;
-        }
-
-
-        function displayProcessedAccountsPreview() {
-            modalPreviewList.innerHTML = '';
-            if (accountsToProcess.length === 0) {
-                modalPreviewList.innerHTML = '<div>No accounts selected for processing.</div>';
-                return;
-            }
-            accountsToProcess.forEach(acc => {
-                const div = document.createElement('div');
-                div.textContent = `${acc.emailPass} | Skins: ${acc.skins.toLocaleString()}`;
-                modalPreviewList.appendChild(div);
-            });
-        }
-
-        function confirmProcess() {
-            showModal(3); // Go to file naming step
-            outputFileNameInput.value = 'processed_accounts.txt'; // Default file name
-        }
-
-        function cancelProcess() {
-            accountsToProcess = []; // Clear accounts to process
-            closeModal();
-        }
-
-        function reshuffleAccounts() {
-            // Go back to step 1 to re-generate preview
-            // This will re-run generatePreview with the same options
-            generatePreview(); // Call generatePreview directly to re-randomize/re-select
-            showModal(2); // Stay on step 2 to review new accounts
-        }
-
-        function downloadProcessedFile() {
-            const filename = outputFileNameInput.value.trim();
-            if (!filename) {
-                alert('Please enter a file name.');
-                return;
-            }
-
-            const fileContent = accountsToProcess.map(acc => acc.originalBlock).join('\n\n'); // Join blocks with double newline
-            downloadTxtFile(fileContent, filename); // Use downloadTxtFile for generic file download
-
-            // Remove processed accounts from allAccounts
-            const processedEmailPasses = new Set(accountsToProcess.map(acc => acc.emailPass));
-            const newAllAccounts = allAccounts.filter(acc => !processedEmailPasses.has(acc.emailPass));
-            
-            allAccounts = newAllAccounts; // Update global allAccounts
-            selectedAccountIndices.clear(); // Clear selection as accounts are removed
-
-            // Re-display results and table with updated allAccounts
-            // Re-parse from the remaining original blocks to ensure all stats are correct
-            // Note: This re-parsing from joined blocks might be inefficient for very large files.
-            // A more optimized approach would be to directly update counts and table.
-            // For now, this ensures consistency.
-            const remainingBlocksContent = allAccounts.map(acc => acc.originalBlock).join('\n');
-            const { valid, total, levelCounts, activeCounts } = parseBlocks(remainingBlocksContent);
-            
-            allAccounts = valid; // Update allAccounts with the re-parsed data (important for correct indices)
-            displayResults(valid, total, levelCounts, activeCounts); // Re-render UI
-
-            closeModal();
-            alert(`Successfully processed and downloaded ${accountsToProcess.length} accounts. The accounts have been removed from the current session.`);
-            accountsToProcess = []; // Clear processed accounts after download and removal
-        }
-
-        function downloadTxtFile(content, filename) {
-            const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        // Make toggle function global for inline onclick
-        window.toggleAccountSelection = toggleAccountSelection;
-        window.generatePreview = generatePreview;
-        window.confirmProcess = confirmProcess;
-        window.cancelProcess = cancelProcess;
-        window.reshuffleAccounts = reshuffleAccounts;
-        window.downloadProcessedFile = downloadProcessedFile;
-        window.closeModal = closeModal;
-    </script>
+  <header>
+    <h1>GALILEANS REMINDER</h1>
+    <h2>Made by Bisayang Dabeh</h2>
+  </header>
+
+  <main class="container">
+        <section class="panel" id="subjectsPanel">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:14px;opacity:0.9">SUBJECTS NEED TO DO</div>
+          <div class="small">Click subject to view details</div>
+        </div>
+        <div class="small" id="subjectsCount">0</div>
+      </div>
+      <ul id="subjectsList" class="plain"></ul>
+    </section>
+
+        <section class="panel" id="remindersPanel">
+      <div style="font-size:14px;opacity:0.9;margin-bottom:4px">EXTRA / REMINDERS</div>
+      <ul id="remindersList" class="plain"></ul>
+    </section>
+
+        <section class="panel hidden" id="loginPanel">
+      <div id="loginForm">
+        <div style="font-weight:600;margin-bottom:8px">🔑 Admin Login</div>
+        <input id="email" type="email" placeholder="admin email" />
+        <input id="password" type="password" placeholder="password" />
+        <button class="btn" id="loginBtn" style="margin-top:10px">Login as Admin</button>
+        <div class="small" id="loginStatus"></div>
+      </div>
+      <div id="adminPanel" class="hidden" style="margin-top:16px">
+        <div style="font-weight:700;margin-bottom:8px">⚙️ Admin Panel</div>
+                <form id="addSubjectForm">
+          <input id="subjectName" type="text" placeholder="Subject e.g. SCIENCE" required />
+          <input id="subjectTask" type="text" placeholder="Task e.g. NOTES" required />
+          <input id="subjectDue" type="text" placeholder="Due (TOM, Tuesday)" />
+          <label class="file-input">📷 Upload Images <input id="subjectFiles" type="file" multiple accept="image/*" /></label>
+          <div class="file-count" id="subjectFileCount"></div>
+          <button class="btn" type="submit" style="margin-top:8px">➕ Add Subject</button>
+          <div class="small" id="subjectFormMsg"></div>
+        </form>
+        <hr style="margin:14px 0;opacity:0.2" />
+                <form id="addReminderForm">
+          <textarea id="reminderText" placeholder="Reminder text..." required></textarea>
+          <label class="file-input">📷 Upload Images <input id="reminderFiles" type="file" multiple accept="image/*" /></label>
+          <div class="file-count" id="reminderFileCount"></div>
+          <button class="btn" type="submit" style="margin-top:8px">➕ Add Reminder</button>
+          <div class="small" id="reminderFormMsg"></div>
+        </form>
+      </div>
+    </section>
+
+        <section class="panel" id="debugPanel">
+      <div style="font-weight:600;margin-bottom:6px">Debug / Status</div>
+      <pre id="debugLog"></pre>
+    </section>
+  </main>
+
+    <button id="adminToggle">🔑 ADMIN</button>
+  <button class="hidden" id="logoutBtn" onclick="logout()">Logout</button>
+
+  <script>
+    /************************************************************
+    * Supabase Init
+    ************************************************************/
+    const SUPABASE_URL = "https://mwosezbzzxjzpgxsdpdr.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13b3NlemJ6enhqenBneHNkcGRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwMjk5ODQsImV4cCI6MjA3MzYwNTk4NH0.LzE9RoKMx9zsMdqydL1vSNeUCNlpD2izQMNCrqiAeCk";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Use your existing public bucket
+    const STORAGE_BUCKET = "uploads"; 
+
+    // A. Constants (near your other constants)
+    const ADMIN_EMAIL = "adminv2@gmail.com";
+
+    /************************************************************
+    * DOM References
+    ************************************************************/
+    const subjectsList=document.getElementById('subjectsList');
+    const remindersList=document.getElementById('remindersList');
+    const subjectsCount=document.getElementById('subjectsCount');
+    const loginPanel=document.getElementById('loginPanel');
+    const loginBtn=document.getElementById('loginBtn');
+    const loginStatus=document.getElementById('loginStatus');
+    const adminPanel=document.getElementById('adminPanel');
+    const logoutBtn=document.getElementById('logoutBtn');
+    const subjectFormMsg=document.getElementById('subjectFormMsg');
+    const reminderFormMsg=document.getElementById('reminderFormMsg');
+    const debugLog=document.getElementById('debugLog');
+    const adminToggle=document.getElementById('adminToggle');
+    const subjectFileCount=document.getElementById('subjectFileCount');
+    const reminderFileCount=document.getElementById('reminderFileCount');
+
+    // Form inputs
+    const addSubjectForm = document.getElementById('addSubjectForm');
+    const subjectName = document.getElementById('subjectName');
+    const subjectTask = document.getElementById('subjectTask');
+    const subjectDue  = document.getElementById('subjectDue');
+    const subjectFilesEl = document.getElementById('subjectFiles');
+
+    const addReminderForm = document.getElementById('addReminderForm');
+    const reminderText = document.getElementById('reminderText');
+    const reminderFilesEl = document.getElementById('reminderFiles');
+
+    let isAdmin=false;
+
+    /************************************************************
+    * Utilities
+    ************************************************************/
+    function logFixed(msg) {
+      const fixed = msg || "Loading subjects + reminders... Render complete.";
+      debugLog.textContent=fixed;
+    }
+    function toggleLogin(){ 
+      loginPanel.classList.toggle('hidden'); 
+    }
+    adminToggle.onclick=()=> toggleLogin();
+
+    // simple uid for file paths
+    const uid = () => Math.random().toString(36).slice(2) + Date.now();
+
+    // upload helper -> returns array of public URLs (no compression)
+    async function uploadFilesReturnUrls(inputEl, subfolder) {
+      const files = Array.from(inputEl?.files || []);
+      if (!files.length) return [];
+      for (const f of files) {
+        const path = `${subfolder}/${uid()}-${f.name}`;
+        const { error: upErr } = await supabase.storage
+          .from(STORAGE_BUCKET)
+          .upload(path, f, { cacheControl: '3600', upsert: false, contentType: f.type || 'application/octet-stream' });
+        if (upErr) throw upErr;
+        const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+        urls.push(data.publicUrl);
+      }
+      return urls;
+    }
+
+    // CORS-safe fetch → Blob (for forced download)
+    async function fetchAsBlob(url) {
+      const res = await fetch(url, { mode: 'cors' });
+      if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+      return await res.blob();
+    }
+
+    // Download All (ZIP if multiple, direct save if single)
+    async function downloadAll(label, urls) {
+      if (!urls || !urls.length) return;
+      // Single image → save directly (prevents opening new tab)
+      if (urls.length === 1) {
+        const blob = await fetchAsBlob(urls[0]);
+        const ext = (urls[0].split('.').pop() || 'jpg').split('?')[0];
+        saveAs(blob, `${(label||'image').replace(/[^a-z0-9-_]/gi,'_')}.${ext}`);
+        return;
+      }
+      // Multiple → ZIP
+      const zip = new JSZip();
+      const folder = zip.folder((label || 'images').replace(/[^a-z0-9-_]/gi,'_')) || zip;
+      let i = 1;
+      for (const url of urls) {
+        const blob = await fetchAsBlob(url);
+        const ext = (url.split('.').pop() || 'jpg').split('?')[0];
+        folder.file(`img_${i}.${ext}`, blob);
+        i++;
+      }
+      const content = await zip.generateAsync({ type: 'blob' });
+      saveAs(content, `${(label || 'images').replace(/[^a-z0-9-_]/gi,'_')}.zip`);
+    }
+
+    // file counters
+    subjectFilesEl?.addEventListener('change', () => {
+      subjectFileCount.textContent = subjectFilesEl.files.length
+        ? `${subjectFilesEl.files.length} image(s) selected` : '';
+    });
+    reminderFilesEl?.addEventListener('change', () => {
+      reminderFileCount.textContent = reminderFilesEl.files.length
+        ? `${reminderFilesEl.files.length} image(s) selected` : '';
+    });
+
+    // B. Visitor logger (call once on load)
+    async function logVisitorOnce(){
+      try{
+        const key = 'vis_logged_at_v3';
+        const last = Number(localStorage.getItem(key) || 0);
+        const now  = Date.now();
+        // Log visitor no more than once every 6 hours
+        if (now - last < 6*60*60*1000) return;
+
+        let info = null;
+
+        // Try ipapi.co first
+        try{
+          const r = await fetch('https://ipapi.co/json/');
+          if (r.ok) info = await r.json();
+        }catch(_){}
+
+        // Fallback to ipwho.is if ipapi.co fails
+        if (!info) {
+          try{
+            const r2 = await fetch('https://ipwho.is/');
+            // ipwho.is returns { success: false } on error, so check is only for response.ok
+            if (r2.ok) info = await r2.json();
+          }catch(_){}
+        }
+        if (!info) return;
+
+        // Normalize data structure for Supabase insert
+        const row = {
+          ip: info.ip || info.query || null,
+          hostname: info.hostname || null,
+          city: info.city || null,
+          region: info.region || info.region_name || null,
+          country: info.country_name || info.country || null,
+          org: info.org || info.isp || (info.connection && info.connection.org) || null,
+          asn: (info.asn || (info.connection && info.connection.asn)) ? String(info.asn || info.connection.asn) : null,
+          ua: navigator.userAgent || null,
+          referrer: document.referrer || null,
+          page: location.pathname || "/",
+          raw: info
+        };
+
+        const { error } = await supabase.from('visitor_logs').insert([row]);
+        if (!error) localStorage.setItem(key, String(now));
+      }catch(_){}
+    }
+
+    // C. Admin audit helper
+    async function insertAudit(action, details){
+      try{
+        const { data: u } = await supabase.auth.getUser();
+        const adminEmail = u?.user?.email || ADMIN_EMAIL || null;
+
+        let ip = null;
+        try{
+          // Use a lightweight service just for IP
+          const r = await fetch('https://api.ipify.org?format=json');
+          if (r.ok){ const j = await r.json(); ip = j.ip || null; }
+        }catch(_){}
+
+        await supabase.from('audit_logs').insert([{
+          admin_email: adminEmail,
+          ip,
+          user_agent: navigator.userAgent || null,
+          action,
+          details: details || {}
+        }]);
+      }catch(_){}
+    }
+
+    /************************************************************
+    * Data Load
+    ************************************************************/
+    async function loadData(){
+      subjectsList.innerHTML=''; 
+      remindersList.innerHTML='';
+      logFixed();
+
+      // ---- SUBJECTS ----
+      const { data: subjects, error: subjErr } = await supabase.from('subjects').select('*').order('id');
+      if (subjErr) {
+        logFixed(`Subjects load error: ${subjErr.message}`);
+        return;
+      }
+      subjectsCount.textContent = subjects?.length || 0;
+
+      subjects?.forEach(s=>{
+        const li=document.createElement('li'); 
+        li.className='item';
+
+        // Download-all button for this subject
+        if (s.images && s.images.length) {
+          const dlAll = document.createElement('button');
+          dlAll.className = 'btn-download-all';
+          dlAll.textContent = '⬇ All';
+          dlAll.title = 'Download all images';
+          dlAll.onclick = async (e) => { 
+            e.stopPropagation(); 
+            dlAll.disabled = true; 
+            try { await downloadAll(s.name || 'subject', s.images); }
+            finally { dlAll.disabled = false; }
+          };
+          li.appendChild(dlAll);
+        }
+
+        const line=document.createElement('div'); 
+        line.className='subject-line';
+        line.textContent=`${s.name} [ ${s.task} | ${s.due || 'TBA'} ]`;
+        li.appendChild(line);
+
+        // image summary (first 3 thumbs)
+        if(s.images&&s.images.length){
+          const summary=document.createElement('div');
+          summary.className='image-summary';
+          s.images.slice(0,3).forEach(url=>{
+            const img=document.createElement('img'); 
+            img.src=url;
+            summary.appendChild(img);
+          });
+          li.appendChild(summary);
+        }
+
+        // expanded images row
+        const imgRow=document.createElement('div'); 
+        imgRow.className='images-row';
+        if(s.images&&s.images.length){
+          s.images.forEach(url=>{
+            const wrap=document.createElement('div'); 
+            wrap.className='image-wrapper';
+            const img=document.createElement('img'); 
+            img.src=url;
+            wrap.appendChild(img);
+            imgRow.appendChild(wrap);
+          });
+        }
+        li.appendChild(imgRow);
+        li.onclick=()=> imgRow.style.display=imgRow.style.display==='flex'?'none':'flex';
+
+        if(isAdmin){
+          const del=document.createElement('button'); 
+          del.className='btn-danger'; 
+          del.textContent='✖';
+          del.onclick=async(e)=>{ 
+            e.stopPropagation();
+            await insertAudit('DELETE_SUBJECT', { subject_id: s.id, name: s.name });
+            await deleteSubject(s.id); 
+          };
+          li.appendChild(del);
+        }
+        subjectsList.appendChild(li);
+      });
+
+      // ---- REMINDERS ----
+      const { data: reminders, error: remErr } = await supabase.from('reminders').select('*').order('id');
+      if (remErr) {
+        logFixed(`Reminders load error: ${remErr.message}`);
+        return;
+      }
+      reminders?.forEach(r=>{
+        const li=document.createElement('li'); 
+        li.className='item';
+
+        // Download-all button for this reminder
+        if (r.images && r.images.length) {
+          const dlAll = document.createElement('button');
+          dlAll.className = 'btn-download-all';
+          dlAll.textContent = '⬇ All';
+          dlAll.title = 'Download all images';
+          dlAll.onclick = async (e) => { 
+            e.stopPropagation(); 
+            dlAll.disabled = true; 
+            try { await downloadAll('reminder', r.images); }
+            finally { dlAll.disabled = false; }
+          };
+          li.appendChild(dlAll);
+        }
+
+        const line=document.createElement('div'); 
+        line.className='subject-line'; 
+        line.textContent=r.text;
+        li.appendChild(line);
+
+        if(r.images&&r.images.length){
+          const summary=document.createElement('div'); 
+          summary.className='image-summary';
+          r.images.slice(0,3).forEach(url=>{
+            const img=document.createElement('img'); 
+            img.src=url;
+            summary.appendChild(img);
+          });
+          li.appendChild(summary);
+        }
+
+        const imgRow=document.createElement('div'); 
+        imgRow.className='images-row';
+        if(r.images&&r.images.length){
+          r.images.forEach(url=>{
+            const wrap=document.createElement('div'); 
+            wrap.className='image-wrapper';
+            const img=document.createElement('img'); 
+            img.src=url;
+            wrap.appendChild(img);
+            imgRow.appendChild(wrap);
+          });
+        }
+        li.appendChild(imgRow);
+        li.onclick=()=> imgRow.style.display=imgRow.style.display==='flex'?'none':'flex';
+
+        if(isAdmin){
+          const del=document.createElement('button'); 
+          del.className='btn-danger'; 
+          del.textContent='✖';
+          del.onclick=async(e)=>{ 
+            e.stopPropagation();
+            await insertAudit('DELETE_REMINDER', { reminder_id: r.id, text: r.text });
+            await deleteReminder(r.id); 
+          };
+          li.appendChild(del);
+        }
+        remindersList.appendChild(li);
+      });
+
+      logFixed();
+    }
+
+    /************************************************************
+    * Delete functions
+    ************************************************************/
+    async function deleteSubject(id){ 
+      const { error } = await supabase.from('subjects').delete().eq('id',id); 
+      if (error) { logFixed(`Delete subject error: ${error.message}`); }
+      await loadData(); 
+    }
+    async function deleteReminder(id){ 
+      const { error } = await supabase.from('reminders').delete().eq('id',id); 
+      if (error) { logFixed(`Delete reminder error: ${error.message}`); }
+      await loadData(); 
+    }
+
+    /************************************************************
+    * Auth
+    ************************************************************/
+    loginBtn.onclick=async()=>{
+      const email=document.getElementById('email').value;
+      const pass=document.getElementById('password').value;
+      loginStatus.textContent="Logging in...";
+      const {data,error}=await supabase.auth.signInWithPassword({email,password:pass});
+      if(error){ 
+        loginStatus.textContent=error.message; 
+        return; 
+      }
+      loginStatus.textContent="Logged in ✔";
+      isAdmin=true; 
+      adminPanel.classList.remove('hidden'); 
+      logoutBtn.classList.remove('hidden');
+      adminToggle.textContent='⚙️ PANEL';
+      await insertAudit('ADMIN_LOGIN', { email }); // Log admin action
+      loadData();
+    };
+    async function logout(){ 
+      await supabase.auth.signOut(); 
+      isAdmin=false; 
+      adminPanel.classList.add('hidden'); 
+      logoutBtn.classList.add('hidden'); 
+      adminToggle.textContent='🔑 ADMIN';
+      await insertAudit('ADMIN_LOGOUT', {}); // Log admin action
+      loadData(); 
+    }
+
+    /************************************************************
+    * FORM HANDLERS (prevent reload, upload, insert, refresh UI)
+    ************************************************************/
+    addSubjectForm?.addEventListener('submit', async (e) => {
+      e.preventDefault(); // STOP page reload
+      subjectFormMsg.textContent = 'Uploading...';
+      const btn = addSubjectForm.querySelector('button[type="submit"]');
+      btn.disabled = true;
+
+      try {
+        const imgUrls = await uploadFilesReturnUrls(subjectFilesEl, 'subjects');
+        const payload = {
+          name: subjectName.value.trim(),
+          task: subjectTask.value.trim(),
+          due:  subjectDue.value.trim(),
+          images: imgUrls
+        };
+        if (!payload.name || !payload.task) {
+          throw new Error('Name and Task are required.');
+        }
+        const { error } = await supabase.from('subjects').insert([payload]);
+        if (error) throw error;
+        
+        // Log admin action
+        await insertAudit('ADD_SUBJECT', payload);
+
+        addSubjectForm.reset();
+        subjectFileCount.textContent = '';
+        subjectFormMsg.textContent = 'Added ✅';
+        await loadData();
+      } catch (err) {
+        subjectFormMsg.textContent = `Error: ${err.message || err}`;
+      } finally {
+        btn.disabled = false;
+        setTimeout(()=> subjectFormMsg.textContent = '', 2500);
+      }
+    });
+
+    addReminderForm?.addEventListener('submit', async (e) => {
+      e.preventDefault(); // STOP page reload
+      reminderFormMsg.textContent = 'Uploading...';
+      const btn = addReminderForm.querySelector('button[type="submit"]');
+      btn.disabled = true;
+
+      try {
+        const imgUrls = await uploadFilesReturnUrls(reminderFilesEl, 'reminders');
+        const payload = {
+          text: reminderText.value.trim(),
+          images: imgUrls
+        };
+        if (!payload.text) {
+          throw new Error('Reminder text is required.');
+        }
+        const { error } = await supabase.from('reminders').insert([payload]);
+        if (error) throw error;
+
+        // Log admin action
+        await insertAudit('ADD_REMINDER', payload);
+
+        addReminderForm.reset();
+        reminderFileCount.textContent = '';
+        reminderFormMsg.textContent = 'Added ✅';
+        await loadData();
+      } catch (err) {
+        reminderFormMsg.textContent = `Error: ${err.message || err}`;
+      } finally {
+        btn.disabled = false;
+        setTimeout(()=> reminderFormMsg.textContent = '', 2500);
+      }
+    });
+
+    /************************************************************
+    * Initial Load
+    ************************************************************/
+    logVisitorOnce(); // Call the visitor logger once on load
+    loadData();
+  </script>
 </body>
 </html>
