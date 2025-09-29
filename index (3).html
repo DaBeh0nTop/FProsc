@@ -3,162 +3,283 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Proxy List Creator — Web</title>
+  <title>MLBB Email Code Login — Demo UI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0b0f17; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb; --brand:#22d3ee; --ok:#10b981; --bad:#ef4444; --warn:#f59e0b;
+      --bg1: #0f1226; --bg2: #121a3a; --bg3: #0a0f25;
+      --card: #151a38; --ink: #e7ecff; --muted: #93a4ff;
+      --accent: #7aa1ff; --accent-2: #6ef3ff; --good:#38d39f; --warn:#ffd66e; --bad:#ff7aa1;
+      --ring: rgba(110, 243, 255, .35);
     }
-    html,body{height:100%;}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,Arial,sans-serif;background:radial-gradient(90vw 80vh at 20% -20%, #0a1530, transparent 60%), radial-gradient(80vw 80vh at 120% 120%, #1a1030, transparent 60%), var(--bg);color:var(--text);}
-    .wrap{max-width:1200px;margin:32px auto;padding:0 16px;}
-    .title{font-size:clamp(22px,3vw,32px);font-weight:800;letter-spacing:.3px;display:flex;align-items:center;gap:12px}
-    .badge{font-size:12px;padding:4px 8px;border-radius:999px;background:linear-gradient(90deg, #22d3ee55, #06b6d455);border:1px solid #22d3ee33;color:#7dd3fc}
-    .grid{display:grid;gap:16px;grid-template-columns:1fr;}
-    @media(min-width:1000px){.grid{grid-template-columns:360px 1fr}}
-    .card{background:linear-gradient(180deg,#111827dd,#0b1220ee);border:1px solid #1f2937;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35);}
-    .card h3{margin:0;padding:16px 16px 8px 16px;font-size:14px;letter-spacing:.4px;font-weight:700;color:#cbd5e1}
-    .card .body{padding:0 16px 16px 16px}
-    textarea,input,select,button{font:inherit;color:inherit}
-    textarea{width:100%;min-height:140px;background:#0b1220;border:1px solid #1f2937;border-radius:12px;color:#e5e7eb;padding:12px 12px;resize:vertical}
-    .row{display:flex;gap:12px;flex-wrap:wrap}
-    .row>div{flex:1 1 120px}
-    .chip{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;background:#0b1220;border:1px solid #1f2937;color:#cbd5e1}
-    .muted{color:var(--muted)}
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid #1f2937;background:#0b1220;color:#e5e7eb;cursor:pointer;transition:transform .08s, background .2s}
-    .btn:hover{transform:translateY(-1px)}
-    .btn.primary{background:linear-gradient(180deg,#0c2931,#062028);border-color:#134e4a}
-    .btn.ok{border-color:#064e3b}
-    .btn.warn{border-color:#7c2d12}
-    .btn:disabled{opacity:.6;cursor:not-allowed}
-    .stats{display:flex;gap:12px;flex-wrap:wrap}
-    .stat{flex:1 1 120px;background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:10px}
-    .stat b{font-size:18px}
-    .progress{height:10px;background:#0b1220;border:1px solid #1f2937;border-radius:999px;overflow:hidden}
-    .bar{height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#10b981)}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:10px;border-bottom:1px solid #1f2937;font-size:13px}
-    th{position:sticky;top:0;background:#0b1220;z-index:1}
-    .pill{padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid #1f2937}
-    .ok{color:#86efac}
-    .bad{color:#fca5a5}
-    .warn{color:#fde68a}
-    .flex{display:flex;gap:8px;align-items:center}
-    .right{margin-left:auto}
-    .hint{font-size:12px;color:#9ca3af}
+    * { box-sizing: border-box }
+    html,body { height: 100% }
+    body {
+      margin: 0; font-family: Poppins, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--ink);
+      background: radial-gradient(1200px 800px at 80% -10%, rgba(110,243,255,.25), transparent 60%),
+                  radial-gradient(800px 600px at -10% 110%, rgba(122,161,255,.20), transparent 55%),
+                  linear-gradient(180deg, var(--bg1), var(--bg2) 60%, var(--bg3));
+    }
+    .wrap { min-height: 100%; display: grid; place-items: center; padding: 32px }
+    .app {
+      width: 100%; max-width: 760px; position: relative;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 24px; padding: 28px; box-shadow: 0 12px 40px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.04);
+      backdrop-filter: blur(8px);
+    }
+    .title { display: flex; align-items: center; gap: 12px; margin-bottom: 20px }
+    .badge { font-size: 12px; padding: 6px 10px; border-radius: 999px; background: rgba(122,161,255,.12); color: var(--muted); border: 1px solid rgba(122,161,255,.25) }
+    h1 { font-size: clamp(20px, 2.6vw, 28px); margin: 0; letter-spacing: .3px }
+    p.lead { margin: 6px 0 18px; color: var(--muted); font-size: 14px }
+
+    form { display: grid; grid-template-columns: 1fr; gap: 14px }
+    .row { display: grid; grid-template-columns: 1fr; gap: 14px }
+    @media (min-width: 700px) { .row { grid-template-columns: 1fr 1fr } }
+
+    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px }
+    .field { position: relative }
+    input[type="email"], input[type="text"] {
+      width: 100%; padding: 14px 14px; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12); background: rgba(10,15,37,.65);
+      color: var(--ink); outline: none; box-shadow: 0 0 0 0 var(--ring);
+      transition: box-shadow .2s ease, border-color .2s ease, transform .06s ease;
+    }
+    input:focus { box-shadow: 0 0 0 6px var(--ring); border-color: rgba(110,243,255,.55) }
+
+    .actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 6px }
+    .btn {
+      appearance: none; border: 0; padding: 12px 16px; border-radius: 12px; cursor: pointer; font-weight: 600;
+      color: #0a0f25; background: linear-gradient(180deg, var(--accent-2), var(--accent));
+      box-shadow: 0 8px 20px rgba(110,243,255,.35), inset 0 0 0 1px rgba(255,255,255,.3);
+      transition: transform .06s ease, filter .2s ease;
+    }
+    .btn:active { transform: translateY(1px) }
+    .btn.secondary { color: var(--ink); background: rgba(255,255,255,.06); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12) }
+
+    .switch { display: inline-flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12) }
+    .switch input { accent-color: var(--accent) }
+
+    .log { margin-top: 18px; padding: 16px; border-radius: 16px; background: rgba(10,15,37,.55); border: 1px solid rgba(255,255,255,.08) }
+    .log pre { margin: 0; max-height: 260px; overflow: auto; font-size: 12px; line-height: 1.35 }
+
+    .status { display: flex; align-items: center; gap: 8px; font-weight: 600; margin: 6px 0 2px }
+    .dot { width: 10px; height: 10px; border-radius: 50% }
+    .ok { color: var(--good) } .warn { color: var(--warn) } .bad { color: var(--bad) }
+    .dot.ok { background: var(--good) } .dot.warn { background: var(--warn) } .dot.bad { background: var(--bad) }
+
+    $1
+    .stats { display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-top:10px; padding:10px 12px; border-radius:12px; background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12) }
+    .stat { display:flex; align-items:center; gap:8px; font-weight:600 }
+    .stat small { color: var(--muted); font-weight:400 }
+    .stat .chip { padding:4px 8px; border-radius:999px; background: rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12) }
+    .footer a { color: var(--accent-2); text-decoration: none }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="title">Proxy List Creator — Web <span class="badge">HTML + CSS + JS</span></div>
+<div class="wrap">
+  <div class="app" id="app">
+    <div class="title">
+      <span class="badge">DEMO / MOCK</span>
+      <h1>Mobile Legends: Email Code Login Checker (UI)</h1>
+    </div>
+    <p class="lead">This single‑file page gives you a clean UI and response handling based on your Node script.
+      It runs in the browser and <strong>uses mock responses by default</strong>. If you own a compliant backend,
+      you can wire it to your server by changing one line in the JS (see <em>Endpoint</em> section below).</p>
 
-    <div class="grid">
-      <section class="card">
-        <h3>Inputs</h3>
-        <div class="body">
-          <label class="hint">Paste proxies (host:port, one per line)</label>
-          <textarea id="proxies" placeholder="1.2.3.4:8080\n5.6.7.8:3128"></textarea>
-          <div class="row" style="margin-top:6px">
-            <div>
-              <label class="hint">Type</label>
-              <select id="ptype">
-                <option value="http">HTTP</option>
-                <option value="https">HTTPS</option>
-                <option value="socks4">SOCKS4</option>
-                <option value="socks5">SOCKS5</option>
-              </select>
-            </div>
-            <div class="right flex">
-              <button id="startBtn" class="btn primary">Start Validate</button>
-              <button id="stopBtn" class="btn warn" disabled>Stop</button>
-            </div>
-          </div>
+    <form id="form">
+      <div class="row">
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" placeholder="name@example.com" required />
         </div>
-      </section>
+        <div class="field">
+          <label for="cn31">CN31 Token</label>
+          <input id="cn31" name="cn31" type="text" placeholder="Paste CN31 here" required />
+        </div>
+      </div>
 
-      <section class="card">
-        <h3>Results</h3>
-        <div class="body">
-          <div class="stats">
-            <div class="stat"><div class="muted">Total</div><b id="stTotal">0</b></div>
-            <div class="stat"><div class="muted">Checked</div><b id="stChecked">0</b></div>
-            <div class="stat"><div class="muted">Alive</div><b id="stAlive" class="ok">0</b></div>
-            <div class="stat"><div class="muted">Dead</div><b id="stDead" class="bad">0</b></div>
-          </div>
-          <div class="progress" style="margin:10px 0 6px"><div class="bar" id="bar"></div></div>
-          <div style="max-height:420px;overflow:auto;border:1px solid #1f2937;border-radius:12px">
-            <table>
-              <thead>
-                <tr>
-                  <th style="width:36px">#</th>
-                  <th>Proxy</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="rows"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+      $1
+        <button class="btn secondary" id="downloadBtn" type="button" disabled>Download valids (.txt)</button>
+      $2
+    <div class="stats" id="stats">
+        <div class="stat"><span class="chip">Valid</span> <span id="validCount">0</span></div>
+        <div class="stat"><span class="chip">Invalid</span> <span id="invalidCount">0</span></div>
+        <div class="stat"><small>Total</small> <span id="totalCount">0</span></div>
+      </div>
+    $1
+
+    <div class="log" id="log">
+      <div class="status" id="status"><span class="dot" id="statusDot"></span><span id="statusText">Idle</span></div>
+      <pre id="output">Waiting…</pre>
+    </div>
+
+    <div class="footer">
+      <strong>Important:</strong> Browsers enforce CORS and origin policies. Direct calls to third‑party account endpoints usually fail or violate site terms.
+      If you have permission and a lawful use‑case, route requests via <em>your own</em> backend and map its JSON to this UI’s format.
     </div>
   </div>
+</div>
 
-  <script>
-    const el = id => document.getElementById(id);
-    const st = { total:0, checked:0, alive:0, dead:0, running:false, aborter:null };
-    const model = [];
+<script>
+  // ——— Settings ————————————————————————————————————————————————————————————
+  const ENDPOINT = "/api/ml-login"; // Your backend (if you wire one). Must return {code, message, data?, redirect?}
 
-    function setStats(){
-      el('stTotal').textContent = st.total;
-      el('stChecked').textContent = st.checked;
-      el('stAlive').textContent = st.alive;
-      el('stDead').textContent = st.dead;
-      const pct = st.total? Math.round((st.checked/st.total)*100):0;
-      el('bar').style.width = pct+"%";
+  // ——— Helpers ————————————————————————————————————————————————————————————
+  const $ = (s) => document.querySelector(s);
+  const statusDot = $("#statusDot");
+  const statusText = $("#statusText");
+  const output = $("#output");
+  const form = $("#form");
+  const emailEl = $("#email");
+  const cn31El = $("#cn31");
+  const submitBtn = $("#submitBtn");
+  const clearBtn = $("#clearBtn");
+  $1
+  const downloadBtn = $("#downloadBtn");
+  const validCountEl = $("#validCount");
+  const invalidCountEl = $("#invalidCount");
+  const totalCountEl = $("#totalCount");
+
+  let currentEmail = "";
+  let validCount = 0, invalidCount = 0;
+  const valids = []; // { email, redirect? }
+
+  function updateStats() {
+    validCountEl.textContent = String(validCount);
+    invalidCountEl.textContent = String(invalidCount);
+    totalCountEl.textContent = String(validCount + invalidCount);
+    downloadBtn.disabled = valids.length === 0;
+  }
+  function addValid(email, redirect) {
+    validCount++; valids.push({ email, redirect }); updateStats();
+  }
+  function addInvalid() { invalidCount++; updateStats(); }
+
+  function setStatus(kind, text) {
+    statusDot.className = "dot " + (kind || "");
+    statusText.textContent = text || "";
+  }
+  function print(obj) {
+    try {
+      output.textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
+    } catch (_) {
+      output.textContent = String(obj);
     }
+  }
 
-    function renderRows(){
-      const tbody = el('rows'); tbody.innerHTML='';
-      let i=0;
-      for(const row of model){
-        const tr=document.createElement('tr');
-        tr.innerHTML = `
-          <td>${++i}</td>
-          <td><code>${row.proxy}</code></td>
-          <td><span class="pill">${row.type.toUpperCase()}</span></td>
-          <td>${ row.status==='alive' ? '<span class="ok">ALIVE</span>' : row.status==='dead' ? '<span class="bad">DEAD</span>' : '<span class="warn">PENDING</span>'}</td>
-        `;
-        tbody.appendChild(tr);
+  // ——— Mock engine (mirrors your Node.js handleResponse cases) ——————————
+  function mockLogin(email, token) {
+    // Simple deterministic picker so the same email yields the same case in a session
+    const seed = (email + "|" + token).split("").reduce((a,c)=>((a<<5)-a+c.charCodeAt(0))|0,0);
+    const roll = Math.abs(seed % 5);
+    switch (roll) {
+      case 0: return { code: 0, message: "Error_Success", redirect: "https://example.com/redirect/session" };
+      case 1: return { code: 1004, message: "Error_NoAccount" };
+      case 2: return { code: 1004, message: "Error_FailedTooMuch" };
+      case 3: return { code: 1004, message: "Error_ECaptcha_VerifyFail" };
+      default: return { code: 9999, message: "Unknown", info: { hint: "Unhandled demo response" } };
+    }
+  }
+
+  // ——— UI response mapping (same semantics as your CLI) ————————————————
+  function handleResponse(resp) {
+    const { code, message } = resp || {};
+    if (code === 1004 && message === "Error_NoAccount") {
+      addInvalid();
+      setStatus("bad", "No account found for this email");
+      print(resp);
+    } else if (code === 0 && message === "Error_Success") {
+      const redirectUrl = resp.redirect || (resp.data && resp.data.redirect);
+      addValid(currentEmail, redirectUrl);
+      setStatus("ok", "Success");
+      print({ success: true, email: currentEmail, redirect: redirectUrl });
+    } else if (code === 1004 && message === "Error_FailedTooMuch") {
+      addInvalid();
+      setStatus("warn", "Too many failed attempts. Your IP/Proxy may be banned");
+      print(resp);
+    } else if (code === 1004 && message === "Error_ECaptcha_VerifyFail") {
+      addInvalid();
+      setStatus("warn", "Captcha verification failed");
+      print(resp);
+    } else {
+      addInvalid();
+      setStatus("", "Unhandled response");
+      print(resp);
+    }
+  } = resp || {};
+    if (code === 1004 && message === "Error_NoAccount") {
+      setStatus("bad", "No account found for this email");
+      print(resp);
+    } else if (code === 0 && message === "Error_Success") {
+      const redirectUrl = resp.redirect || (resp.data && resp.data.redirect);
+      setStatus("ok", "Success");
+      print({ success: true, redirect: redirectUrl });
+    } else if (code === 1004 && message === "Error_FailedTooMuch") {
+      setStatus("warn", "Too many failed attempts. Your IP/Proxy may be banned");
+      print(resp);
+    } else if (code === 1004 && message === "Error_ECaptcha_VerifyFail") {
+      setStatus("warn", "Captcha verification failed");
+      print(resp);
+    } else {
+      setStatus("", "Unhandled response");
+      print(resp);
+    }
+  }
+
+  // ——— Submit flow ————————————————————————————————————————————————
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $1
+    currentEmail = email;
+    if (!email || !cn31) return;
+
+    setStatus("", "Checking…");
+    print("Sending…");
+    submitBtn.disabled = true;
+
+    try {
+      let resp;
+      if (mockToggle.checked) {
+        // Demo path (no network)
+        await new Promise(r => setTimeout(r, 500));
+        resp = mockLogin(email, cn31);
+      } else {
+        // Backend path: Your server should accept { email, e_captcha } and return { code, message, data?, redirect? }
+        const r = await fetch(ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, e_captcha: cn31 })
+        });
+        resp = await r.json();
       }
+      handleResponse(resp);
+    } catch (err) {
+      setStatus("bad", "Request error");
+      print({ error: err?.message || String(err) });
+    } finally {
+      submitBtn.disabled = false;
     }
+  });
 
-    function prepareList(){
-      const ptype = el('ptype').value;
-      const list = [...new Set(el('proxies').value.split(/\n+/).map(v=>v.trim()).filter(Boolean))];
-      model.length=0;
-      for(const p of list){ model.push({proxy:p, type:ptype, status:'pending'}); }
-      st.total=model.length; st.checked=0; st.alive=0; st.dead=0; setStats(); renderRows();
-    }
+  $1
 
-    async function runValidate(){
-      prepareList();
-      if(!st.total){ alert('No proxies to validate.'); return; }
-      st.running=true; el('stopBtn').disabled=false; el('startBtn').disabled=true;
-      for(const row of model){
-        // simulate random result
-        await new Promise(r=>setTimeout(r,200+Math.random()*500));
-        const ok=Math.random()<0.4; row.status=ok?'alive':'dead';
-        if(ok) st.alive++; else st.dead++;
-        st.checked++; setStats(); renderRows();
-        if(!st.running) break;
-      }
-      st.running=false; el('stopBtn').disabled=true; el('startBtn').disabled=false;
-    }
+  downloadBtn.addEventListener("click", () => {
+    if (!valids.length) return;
+    const lines = valids.map(v => v.email + (v.redirect ? " => " + v.redirect : ""));
+    const blob = new Blob([lines.join("
+") + "
+"], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "valid-accounts.txt";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
 
-    function stopValidate(){ st.running=false; }
-
-    el('startBtn').addEventListener('click', runValidate);
-    el('stopBtn').addEventListener('click', stopValidate);
-  </script>
+  // initialize counters
+  updateStats();
+</script>
 </body>
 </html>
